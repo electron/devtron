@@ -44,7 +44,7 @@
   },
   "dependencies": {
     "accessibility-developer-tools": "^2.11.0",
-    "highlight.js": "^9.3.0",
+    "highlight.js": "^11.1.0",
     "humanize-plus": "^1.8.1"
   },
   "standard": {
