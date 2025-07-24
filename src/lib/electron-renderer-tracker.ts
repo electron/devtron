@@ -36,6 +36,8 @@ export function monitorRenderer(): void {
   const originalAddListener = ipcRenderer.addListener.bind(ipcRenderer);
   const originalRemoveListener = ipcRenderer.removeListener.bind(ipcRenderer);
   const originalRemoveAllListeners = ipcRenderer.removeAllListeners.bind(ipcRenderer);
+  const originalSendSync = ipcRenderer.sendSync.bind(ipcRenderer);
+  const originalInvoke = ipcRenderer.invoke.bind(ipcRenderer);
 
   ipcRenderer.on = function (
     channel: string,
@@ -129,18 +131,43 @@ export function monitorRenderer(): void {
       return result;
     }
   };
+
+  ipcRenderer.sendSync = function (channel: string, ...args: any[]) {
+    const start = performance.now();
+    const result = originalSendSync(channel, ...args);
+    const duration = performance.now() - start;
+
+    track('main-to-renderer', channel, [result], 'sendSync (response)', duration);
+
+    return result;
+  };
+
+  ipcRenderer.invoke = async function (channel: string, ...args: any[]): Promise<any> {
+    const start = performance.now();
+    const result = await originalInvoke(channel, ...args);
+    const duration = performance.now() - start;
+
+    track('main-to-renderer', channel, [result], 'invoke (response)', duration);
+
+    return result;
+  };
 }
 
-function track(direction: Direction, channel: string, args: any[], method?: string): void {
+function track(
+  direction: Direction,
+  channel: string,
+  args: any[],
+  method?: string,
+  responseTime?: number,
+): void {
   const event: IpcEventData = {
     timestamp: Date.now(),
     direction,
     channel,
     args: copyArgs(args),
   };
-  if (method) {
-    event.method = method;
-  }
+  if (method) event.method = method;
+  if (responseTime) event.responseTime = responseTime;
 
   const message: PanelMessage = {
     source: MSG_TYPE.SEND_TO_PANEL,

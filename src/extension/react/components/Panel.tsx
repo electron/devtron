@@ -167,8 +167,17 @@ function Panel() {
         flex: 1,
         cellClass: 'font-roboto text-[13px] !p-1 h-full flex items-center',
         headerClass: '!h-6',
-        tooltipValueGetter: (params) => {
-          return params.value; // or a custom string
+        cellRenderer: (params: ICellRendererParams<IpcEventDataIndexed>) => {
+          return (
+            <div className="" title={params.value}>
+              {params.value}
+              {params.data?.responseTime && (
+                <span className="ml-2 rounded bg-gray-200 px-1.5 py-0.5 text-xs dark:bg-charcoal-400">
+                  Response
+                </span>
+              )}
+            </div>
+          );
         },
       },
       {

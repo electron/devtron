@@ -92,6 +92,16 @@ function DetailPanel({ selectedRow, onClose, direction = 'right' }: Props) {
                 </span>
               </div>
             )}
+
+            {/* Response Time */}
+            {selectedRow.responseTime && (
+              <div className="flex w-fit items-center gap-x-1">
+                <span className="text-nowrap font-medium">Response Time: </span>
+                <span className="block max-w-96 break-all rounded bg-gray-200 px-1 py-0.5 dark:bg-charcoal-500">
+                  {selectedRow.responseTime.toFixed(2)} ms
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Args */}
