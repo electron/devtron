@@ -1,6 +1,8 @@
 import { ipcRenderer } from 'electron';
 import { MSG_TYPE } from '../common/constants';
 import type { Direction, IpcEventData } from '../types/shared';
+import { performance } from 'node:perf_hooks';
+import { v4 as uuidv4 } from 'uuid';
 
 interface PanelMessage {
   source: typeof MSG_TYPE.SEND_TO_PANEL;
@@ -133,21 +135,31 @@ export function monitorRenderer(): void {
   };
 
   ipcRenderer.sendSync = function (channel: string, ...args: any[]) {
+    const uuid = uuidv4(); // uuid is used to match the response with the request
+    const payload = {
+      __uuid__devtron: uuid,
+      args,
+    };
     const start = performance.now();
-    const result = originalSendSync(channel, ...args);
+    const result = originalSendSync(channel, payload);
     const duration = performance.now() - start;
 
-    track('main-to-renderer', channel, [result], 'sendSync (response)', duration);
+    track('main-to-renderer', channel, [result], 'sendSync (response)', duration, uuid);
 
     return result;
   };
 
   ipcRenderer.invoke = async function (channel: string, ...args: any[]): Promise<any> {
+    const uuid = uuidv4(); // uuid is used to match the response with the request
+    const payload = {
+      __uuid__devtron: uuid,
+      args,
+    };
     const start = performance.now();
-    const result = await originalInvoke(channel, ...args);
+    const result = await originalInvoke(channel, payload);
     const duration = performance.now() - start;
 
-    track('main-to-renderer', channel, [result], 'invoke (response)', duration);
+    track('main-to-renderer', channel, [result], 'invoke (response)', duration, uuid);
 
     return result;
   };
@@ -159,12 +171,14 @@ function track(
   args: any[],
   method?: string,
   responseTime?: number,
+  uuid?: string,
 ): void {
   const event: IpcEventData = {
     timestamp: Date.now(),
     direction,
     channel,
     args: copyArgs(args),
+    uuid,
   };
   if (method) event.method = method;
   if (responseTime) event.responseTime = responseTime;

@@ -10,8 +10,9 @@ type Props = {
   selectedRow: IpcEventDataIndexed | null;
   onClose: () => void;
   direction?: 'right' | 'bottom';
+  gotoRow?: (row: number) => void;
 };
-function DetailPanel({ selectedRow, onClose, direction = 'right' }: Props) {
+function DetailPanel({ selectedRow, onClose, direction = 'right', gotoRow }: Props) {
   const { theme } = useDevtronContext();
   if (!selectedRow) return null;
 
@@ -99,6 +100,21 @@ function DetailPanel({ selectedRow, onClose, direction = 'right' }: Props) {
                 <span className="text-nowrap font-medium">Response Time: </span>
                 <span className="block max-w-96 break-all rounded bg-gray-200 px-1 py-0.5 dark:bg-charcoal-500">
                   {selectedRow.responseTime.toFixed(2)} ms
+                </span>
+              </div>
+            )}
+
+            {/* Linked Event */}
+            {selectedRow.gotoSerialNumber && (
+              <div className="flex w-fit items-center gap-x-1">
+                <span className="text-nowrap font-medium">Linked Event: </span>
+                <span
+                  className="block max-w-96 cursor-pointer break-all rounded bg-gray-200 px-1 py-0.5 text-cyan-700 hover:underline dark:bg-charcoal-500 dark:text-cyan-500"
+                  onClick={() => {
+                    if (gotoRow) gotoRow(selectedRow.gotoSerialNumber!);
+                  }}
+                >
+                  #{selectedRow.gotoSerialNumber}
                 </span>
               </div>
             )}

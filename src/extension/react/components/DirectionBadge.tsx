@@ -53,6 +53,14 @@ export default function DirectionBadge({ direction }: Props) {
           labelRight: '',
           tooltip: 'Renderer',
         };
+      case 'main':
+        return {
+          colorClass:
+            'dark:bg-dark-purple dark:text-light-purple bg-purple-100 text-purple-800 border-purple-300 dark:border-light-purple',
+          labelLeft: 'Main',
+          labelRight: '',
+          tooltip: 'Main',
+        };
       default:
         return {
           colorClass:

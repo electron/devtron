@@ -14,6 +14,7 @@ import {
   themeQuartz,
   ScrollApiModule,
   TooltipModule,
+  RowApiModule,
 } from 'ag-grid-community';
 import { Ban, Lock, LockOpen, Moon, PanelBottom, PanelRight, Sun } from 'lucide-react';
 import { MSG_TYPE, PORT_NAME } from '../../../common/constants';
@@ -29,6 +30,7 @@ ModuleRegistry.registerModules([
   CellStyleModule,
   ScrollApiModule,
   TooltipModule,
+  RowApiModule,
 ]);
 import { useDevtronContext } from '../context/context';
 
@@ -51,9 +53,37 @@ function Panel() {
     setLockToBottom,
   } = useDevtronContext();
 
+  /**
+   * uuidMapRef stores the indexes of events that have a UUID.
+   * If an event with the same UUID is received later on, we add a gotoSerialNumber property
+   * to the previous event with the same UUID.
+   * This allows us to jump between events that are related to each other.
+   */
+  const uuidMapRef = useRef(new Map<string, number>());
   const lockToBottomRef = useRef(lockToBottom);
   const gridRef = useRef<AgGridReact<IpcEventDataIndexed> | null>(null);
   const portRef = useRef<chrome.runtime.Port | null>(null);
+
+  const scrollToRow = useCallback(
+    (row: number, position: 'top' | 'bottom' | 'middle' | null) =>
+      gridRef.current?.api.ensureIndexVisible(row - 1, position),
+    [],
+  );
+
+  // go to a row, highlight it and open the detail panel
+  const gotoRow = useCallback(
+    (row: number) => {
+      if (!gridRef.current) return;
+      scrollToRow(row, 'bottom');
+      const rowNode = gridRef.current.api.getRowNode(String(row));
+      if (rowNode) {
+        rowNode.setSelected(true);
+        setSelectedRow(rowNode.data ?? null);
+        setShowDetailPanel(true);
+      }
+    },
+    [scrollToRow],
+  );
 
   const clearEvents = useCallback(() => {
     if (isDev) {
@@ -66,6 +96,7 @@ function Panel() {
     try {
       portRef.current.postMessage({ type: MSG_TYPE.CLEAR_EVENTS } satisfies MessagePanel);
       setEvents([]);
+      uuidMapRef.current.clear();
     } catch (error) {
       console.error('Devtron - Error clearing events:', error);
     }
@@ -99,12 +130,31 @@ function Panel() {
 
     const handleOnMessage = (message: MessagePanel): void => {
       if (message.type === MSG_TYPE.RENDER_EVENT) {
+        const event = message.event;
+
         setEvents((prev) => {
-          const updated = [...prev, message.event].slice(-MAX_EVENTS_TO_DISPLAY);
+          const updated = [...prev, event].slice(-MAX_EVENTS_TO_DISPLAY);
+          // If the event with the same UUID already exists, we update it
+          if (event.uuid && uuidMapRef.current.has(event.uuid)) {
+            const index = uuidMapRef.current.get(event.uuid)!;
+            if (index < prev.length) {
+              // update the old event to include a link to the new event
+              const oldEvent = updated[index];
+              oldEvent.gotoSerialNumber = event.serialNumber;
+              updated[index] = oldEvent;
+              // add a link to the old event in the new event
+              updated[updated.length - 1] = { ...event, gotoSerialNumber: index + 1 };
+            }
+            uuidMapRef.current.delete(event.uuid);
+          } else if (event.uuid) {
+            // If a UUID is encountered for the first time, we store its index
+            uuidMapRef.current.set(event.uuid, updated.length - 1);
+          }
+
           if (lockToBottomRef.current) {
             requestAnimationFrame(() => {
               requestAnimationFrame(() => {
-                gridRef.current?.api.ensureIndexVisible(updated.length - 1, 'bottom');
+                scrollToRow(updated.length, 'bottom');
               });
             });
           }
@@ -130,7 +180,7 @@ function Panel() {
       setIsPortReady(false);
       if (port) port.disconnect();
     };
-  }, [setLockToBottom]);
+  }, [scrollToRow, setLockToBottom]);
 
   const columnDefs: ColDef<IpcEventDataIndexed>[] = useMemo(
     () => [
@@ -284,6 +334,7 @@ function Panel() {
             suppressScrollOnNewData={true}
             rowData={events}
             columnDefs={columnDefs}
+            getRowId={(params) => String(params.data.serialNumber)}
             theme={themeQuartz
               .withParams({
                 cellFontFamily: 'roboto, sans-serif',
@@ -317,6 +368,7 @@ function Panel() {
           selectedRow={selectedRow}
           onClose={handleCloseDetailPanel}
           direction={detailPanelPosition}
+          gotoRow={gotoRow}
         />
       </ResizablePanel>
     </div>
