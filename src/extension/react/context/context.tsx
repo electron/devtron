@@ -52,6 +52,11 @@ export default function DevtronProvider({ children }: DevtronProviderProps) {
     const savedTheme = localStorage.getItem('theme') as Theme | null;
     if (savedTheme) {
       setTheme(savedTheme);
+    } else {
+      // set theme based on system preference if not set
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const initialTheme: Theme = prefersDark ? 'dark' : 'light';
+      setTheme(initialTheme);
     }
 
     const savedDetailPanelPosition = localStorage.getItem(
