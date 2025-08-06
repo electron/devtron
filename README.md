@@ -45,7 +45,7 @@ if (isDev) {
 - Electron version must be 36.0.0 or higher.
 - For Devtron to work with newly created **sessions**, you must call `devtron.install()` before they are created.
 - Some IPC events sent immediately after the Electron app starts may not be captured by Devtron, even if `devtron.install()` is called early, because Devtron may take a short time to initialize after starting the app.
-- `ipcRenderer.once` will be tracked as two separate events `ipcRenderer.on` and then `ipcRenderer.removeListener`.
+- `ipcRenderer.once` will be tracked as two separate events: `ipcRenderer.on` and `ipcRenderer.removeListener`.
 
 If Devtron is installed correctly, it should appear as a tab in the Developer Tools of your Electron app.
 
