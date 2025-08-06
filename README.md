@@ -26,17 +26,19 @@ devtron.install(); // call this function at the top of your file
 - Devtron can be conditionally installed in **development mode** to avoid impacting production builds. Here's an example:
 
 ```js
-const isDev = true
+const { app } = require('electron');
+
+const isDev = !app.isPackaged;
 
 async function installDevtron() {
-  const { devtron } = await import('@electron/devtron')
-  await devtron.install()
+  const { devtron } = await import('@electron/devtron');
+  await devtron.install();
 }
 
 if (isDev) {
   installDevtron().catch((error) => {
-    console.error('Failed to install Devtron:', error)
-  })
+    console.error('Failed to install Devtron:', error);
+  });
 }
 ```
 
