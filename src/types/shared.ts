@@ -6,7 +6,6 @@ export type Direction =
   | 'service-worker-to-main'
   | 'main-to-service-worker'
   | 'renderer'
-  | 'renderer'
   | 'main';
 
 export type ServiceWorkerDetails = {
