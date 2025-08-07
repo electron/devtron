@@ -31,7 +31,7 @@ const commonConfig: Configuration = {
     extensions: ['.ts', '.tsx', '.js', '.jsx'],
   },
   externals: {
-    electron: 'commonjs2 electron',
+    electron: 'electron',
   },
 };
 
