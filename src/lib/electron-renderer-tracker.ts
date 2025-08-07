@@ -1,8 +1,6 @@
 import { ipcRenderer } from 'electron';
 import { MSG_TYPE } from '../common/constants';
 import type { Direction, IpcEventData } from '../types/shared';
-import { performance } from 'node:perf_hooks';
-import { v4 as uuidv4 } from 'uuid';
 
 interface PanelMessage {
   source: typeof MSG_TYPE.SEND_TO_PANEL;
@@ -135,7 +133,7 @@ export function monitorRenderer(): void {
   };
 
   ipcRenderer.sendSync = function (channel: string, ...args: any[]) {
-    const uuid = uuidv4(); // uuid is used to match the response with the request
+    const uuid = crypto.randomUUID(); // uuid is used to match the response with the request
     const payload = {
       __uuid__devtron: uuid,
       args,
@@ -150,7 +148,7 @@ export function monitorRenderer(): void {
   };
 
   ipcRenderer.invoke = async function (channel: string, ...args: any[]): Promise<any> {
-    const uuid = uuidv4(); // uuid is used to match the response with the request
+    const uuid = crypto.randomUUID(); // uuid is used to match the response with the request
     const payload = {
       __uuid__devtron: uuid,
       args,
