@@ -219,7 +219,7 @@ function Panel() {
         headerClass: '!h-6',
         cellRenderer: (params: ICellRendererParams<IpcEventDataIndexed>) => {
           return (
-            <div className="" title={params.value}>
+            <div title={params.value}>
               {params.value}
               {params.data?.responseTime && (
                 <span className="ml-2 rounded bg-gray-200 px-1.5 py-0.5 text-xs dark:bg-charcoal-400">
