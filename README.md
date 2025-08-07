@@ -1,4 +1,4 @@
-# Devtron
+# <img src="https://cloud.githubusercontent.com/assets/378023/15063285/cf554e40-1383-11e6-9b9c-45d381b03f9f.png" width="60px" align="center" alt="Devtron icon"> Devtron
 
 > [!NOTE]
 > This project is under development and subject to change.
