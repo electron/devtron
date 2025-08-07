@@ -15,6 +15,8 @@ function DetailPanel({ selectedRow, onClose, direction = 'right' }: Props) {
   const { theme } = useDevtronContext();
   if (!selectedRow) return null;
 
+  const { serviceWorkerVersionId, serviceWorkerScope } = selectedRow.serviceWorkerDetails || {};
+
   const timestamp = formatTimestamp(selectedRow.timestamp);
 
   const isBottomDocked = direction === 'bottom';
@@ -43,7 +45,7 @@ function DetailPanel({ selectedRow, onClose, direction = 'right' }: Props) {
             <div className="flex items-center gap-x-1">
               <span className="font-medium"> Channel: </span>
               {selectedRow.channel && (
-                <span className="block max-w-72 break-all rounded bg-gray-200 px-1 py-0.5 dark:bg-charcoal-500">
+                <span className="block max-w-96 break-all rounded bg-gray-200 px-1 py-0.5 dark:bg-charcoal-500">
                   {selectedRow.channel}
                 </span>
               )}
@@ -64,9 +66,29 @@ function DetailPanel({ selectedRow, onClose, direction = 'right' }: Props) {
             {/* Method */}
             {selectedRow.method && (
               <div className="flex w-fit items-center gap-x-1">
-                <span className="font-medium">Method: </span>
-                <span className="block max-w-72 break-all rounded bg-gray-200 px-1 py-0.5 dark:bg-charcoal-500">
+                <span className="text-nowrap font-medium">Method: </span>
+                <span className="block max-w-96 break-all rounded bg-gray-200 px-1 py-0.5 dark:bg-charcoal-500">
                   {selectedRow.method}
+                </span>
+              </div>
+            )}
+
+            {/* Service Worker Scope */}
+            {serviceWorkerScope && (
+              <div className="flex w-fit items-center gap-x-1">
+                <span className="text-nowrap font-medium">SW Scope: </span>
+                <span className="block max-w-96 break-all rounded bg-gray-200 px-1 py-0.5 dark:bg-charcoal-500">
+                  {serviceWorkerScope}
+                </span>
+              </div>
+            )}
+
+            {/* Service Worker Version ID */}
+            {serviceWorkerVersionId && (
+              <div className="flex w-fit items-center gap-x-1">
+                <span className="text-nowrap font-medium">SW Version ID: </span>
+                <span className="block max-w-96 break-all rounded bg-gray-200 px-1 py-0.5 dark:bg-charcoal-500">
+                  {serviceWorkerVersionId}
                 </span>
               </div>
             )}

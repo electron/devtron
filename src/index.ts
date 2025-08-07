@@ -1,7 +1,7 @@
 import { app, session } from 'electron';
 import path from 'node:path';
 import { createRequire } from 'node:module';
-import type { Direction, IpcEventData } from './types/shared';
+import type { Direction, IpcEventData, ServiceWorkerDetails } from './types/shared';
 
 let isInstalled = false;
 let isInstalledToDefaultSession = false;
@@ -13,23 +13,25 @@ function trackIpcEvent(
   direction: Direction,
   channel: string,
   args: any[],
-  serviceWorker: Electron.ServiceWorkerMain,
+  devtronSW: Electron.ServiceWorkerMain,
+  serviceWorkerDetails?: ServiceWorkerDetails,
 ) {
   const eventData: IpcEventData = {
     direction,
     channel,
     args,
     timestamp: Date.now(),
+    serviceWorkerDetails,
   };
 
-  if (serviceWorker === null) {
+  if (devtronSW === null) {
     console.error('The service-worker for Devtron is not registered yet. Cannot track IPC event.');
     return;
   }
-  serviceWorker.send('devtron-render-event', eventData);
+  devtronSW.send('devtron-render-event', eventData);
 }
 
-function registerIpcListeners(ses: Electron.Session, serviceWorker: Electron.ServiceWorkerMain) {
+function registerIpcListeners(ses: Electron.Session, devtronSW: Electron.ServiceWorkerMain) {
   ses.on(
     // @ts-expect-error: '-ipc-message' is an internal event
     '-ipc-message',
@@ -38,9 +40,9 @@ function registerIpcListeners(ses: Electron.Session, serviceWorker: Electron.Ser
       channel: string,
       args: any[],
     ) => {
-      if (event.type === 'frame') trackIpcEvent('renderer-to-main', channel, args, serviceWorker);
+      if (event.type === 'frame') trackIpcEvent('renderer-to-main', channel, args, devtronSW);
       else if (event.type === 'service-worker')
-        trackIpcEvent('service-worker-to-main', channel, args, serviceWorker);
+        trackIpcEvent('service-worker-to-main', channel, args, devtronSW);
     },
   );
 
@@ -52,9 +54,9 @@ function registerIpcListeners(ses: Electron.Session, serviceWorker: Electron.Ser
       channel: string,
       args: any[],
     ) => {
-      if (event.type === 'frame') trackIpcEvent('renderer-to-main', channel, args, serviceWorker);
+      if (event.type === 'frame') trackIpcEvent('renderer-to-main', channel, args, devtronSW);
       else if (event.type === 'service-worker')
-        trackIpcEvent('service-worker-to-main', channel, args, serviceWorker);
+        trackIpcEvent('service-worker-to-main', channel, args, devtronSW);
     },
   );
   ses.on(
@@ -65,11 +67,79 @@ function registerIpcListeners(ses: Electron.Session, serviceWorker: Electron.Ser
       channel: string,
       args: any[],
     ) => {
-      if (event.type === 'frame') trackIpcEvent('renderer-to-main', channel, args, serviceWorker);
+      if (event.type === 'frame') trackIpcEvent('renderer-to-main', channel, args, devtronSW);
       else if (event.type === 'service-worker')
-        trackIpcEvent('service-worker-to-main', channel, args, serviceWorker);
+        trackIpcEvent('service-worker-to-main', channel, args, devtronSW);
     },
   );
+}
+
+/**
+ * Registers a listener for the service worker's send method to track IPC events
+ * sent from the main process to the service worker.
+ */
+function registerServiceWorkerSendListener(
+  ses: Electron.Session,
+  devtronSW: Electron.ServiceWorkerMain,
+): void {
+  const isInstalledSet = new Set<number>(); // stores version IDs of patched service workers
+
+  // register listener for existing service workers
+  const allRunning = ses.serviceWorkers.getAllRunning();
+  for (const vid in allRunning) {
+    const swInfo = allRunning[vid];
+
+    const sw = ses.serviceWorkers.getWorkerFromVersionID(Number(vid));
+
+    if (typeof sw === 'undefined' || sw.scope === devtronSW.scope) continue;
+    isInstalledSet.add(swInfo.versionId);
+
+    const originalSend = sw.send;
+    sw.send = function (...args) {
+      trackIpcEvent(
+        'main-to-service-worker',
+        args[0], // channel
+        args.slice(1), // args
+        devtronSW,
+        {
+          serviceWorkerScope: sw.scope,
+          serviceWorkerVersionId: sw.versionId,
+        },
+      );
+      return originalSend.apply(this, args);
+    };
+  }
+
+  // register listener for new service workers
+  ses.serviceWorkers.on('running-status-changed', (details) => {
+    if (details.runningStatus === 'running' || details.runningStatus === 'starting') {
+      const sw = ses.serviceWorkers.getWorkerFromVersionID(details.versionId);
+
+      if (
+        typeof sw === 'undefined' ||
+        sw.scope === devtronSW.scope ||
+        isInstalledSet.has(sw.versionId)
+      )
+        return;
+
+      isInstalledSet.add(details.versionId);
+
+      const originalSend = sw.send;
+      sw.send = function (...args) {
+        trackIpcEvent(
+          'main-to-service-worker',
+          args[0], // channel
+          args.slice(1), // args
+          devtronSW,
+          {
+            serviceWorkerScope: sw.scope,
+            serviceWorkerVersionId: sw.versionId,
+          },
+        );
+        return originalSend.apply(this, args);
+      };
+    }
+  });
 }
 
 async function startServiceWorker(ses: Electron.Session, extension: Electron.Extension) {
@@ -77,6 +147,7 @@ async function startServiceWorker(ses: Electron.Session, extension: Electron.Ext
     const sw = await ses.serviceWorkers.startWorkerForScope(extension.url);
     sw.startTask();
     registerIpcListeners(ses, sw);
+    registerServiceWorkerSendListener(ses, sw);
   } catch (error) {
     console.warn(`Failed to start Devtron service-worker (${error}), trying again...`);
     /**
@@ -93,6 +164,7 @@ async function startServiceWorker(ses: Electron.Session, extension: Electron.Ext
           const sw = await ses.serviceWorkers.startWorkerForScope(extension.url);
           sw.startTask();
           registerIpcListeners(ses, sw);
+          registerServiceWorkerSendListener(ses, sw);
           ses.serviceWorkers.removeListener('registration-completed', handleDetails);
           console.log(`Devtron service-worker started successfully`);
         }

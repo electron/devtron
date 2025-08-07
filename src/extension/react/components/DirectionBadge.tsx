@@ -30,11 +30,20 @@ export default function DirectionBadge({ direction }: Props) {
       case 'service-worker-to-main':
         return {
           colorClass:
-            'dark:bg-dark-orange dark:text-light-orange bg-yellow-100 text-yellow-800 border-yellow-300 dark:border-light-orange',
+            'dark:bg-dark-yellow dark:text-light-yellow bg-yellow-100 text-yellow-800 border-yellow-300 dark:border-light-yellow',
           Icon: ArrowRight,
           labelLeft: 'SW',
           labelRight: 'Main',
           tooltip: 'Service Worker to Main',
+        };
+      case 'main-to-service-worker':
+        return {
+          colorClass:
+            'dark:bg-dark-orange dark:text-light-orange bg-orange-100 text-orange-800 border-orange-300 dark:border-light-orange',
+          Icon: ArrowRight,
+          labelLeft: 'Main',
+          labelRight: 'SW',
+          tooltip: 'Main to Service Worker',
         };
       case 'renderer':
         return {

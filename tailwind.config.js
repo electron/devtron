@@ -19,11 +19,13 @@ export default {
         'charcoal-700': '#171717',
         'charcoal-800': '#111113',
 
-        'light-orange': '#ffa057',
+        'light-yellow': '#ffc53d',
+        'light-orange': '#ff8a30 ',
         'light-blue': '#70b8ff',
         'light-green': '#3ddb8f',
         'light-purple': '#c96cff',
 
+        'dark-yellow': '#362b00',
         'dark-orange': '#331e10',
         'dark-blue': '#0d2849',
         'dark-green': '#132d23',

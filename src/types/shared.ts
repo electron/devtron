@@ -4,20 +4,30 @@ export type Direction =
   | 'renderer-to-main'
   | 'main-to-renderer'
   | 'service-worker-to-main'
+  | 'main-to-service-worker'
   | 'renderer';
+
+export type ServiceWorkerDetails = {
+  serviceWorkerVersionId: number;
+  serviceWorkerScope: string;
+};
+
 export interface IpcEventData {
   direction: Direction;
   channel: string;
   args: any[];
   timestamp: number;
   method?: string;
+  serviceWorkerDetails?: ServiceWorkerDetails;
 }
+
 /* ------------------------------------------------------ */
 
 /* ---------------------- EXTENSION --------------------- */
 export interface IpcEventDataIndexed extends IpcEventData {
   serialNumber: number;
 }
+
 export type MessagePanel =
   | { type: typeof MSG_TYPE.PONG }
   | { type: typeof MSG_TYPE.PING }
