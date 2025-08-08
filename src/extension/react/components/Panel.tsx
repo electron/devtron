@@ -34,6 +34,9 @@ ModuleRegistry.registerModules([
 ]);
 import { useDevtronContext } from '../context/context';
 
+type UUID = string;
+type SerialNumber = number;
+
 const isDev = process.env.NODE_ENV === 'development';
 
 function Panel() {
@@ -59,30 +62,39 @@ function Panel() {
    * to the previous event with the same UUID.
    * This allows us to jump between events that are related to each other.
    */
-  const uuidMapRef = useRef(new Map<string, number>());
+  const uuidMapRef = useRef(new Map<UUID, SerialNumber>());
   const lockToBottomRef = useRef(lockToBottom);
   const gridRef = useRef<AgGridReact<IpcEventDataIndexed> | null>(null);
   const portRef = useRef<chrome.runtime.Port | null>(null);
 
+  // scrollToRow uses zero-based indexing
   const scrollToRow = useCallback(
     (row: number, position: 'top' | 'bottom' | 'middle' | null) =>
-      gridRef.current?.api.ensureIndexVisible(row - 1, position),
+      gridRef.current?.api.ensureIndexVisible(row, position),
     [],
   );
 
-  // go to a row, highlight it and open the detail panel
+  // go to a row, highlight it and open the detail panel (it uses serialNumber to identify the row)
   const gotoRow = useCallback(
-    (row: number) => {
-      if (!gridRef.current) return;
-      scrollToRow(row, 'bottom');
-      const rowNode = gridRef.current.api.getRowNode(String(row));
+    (serialNumber: number) => {
+      if (!gridRef.current || events.length === 0) return;
+
+      const firstSerial = events[0].serialNumber;
+      const index = serialNumber - firstSerial; // convert to 0-based index
+
+      if (index < 0 || index >= events.length) return;
+
+      scrollToRow(index, 'bottom');
+
+      const rowNode = gridRef.current.api.getRowNode(String(serialNumber));
+
       if (rowNode) {
         rowNode.setSelected(true);
         setSelectedRow(rowNode.data ?? null);
         setShowDetailPanel(true);
       }
     },
-    [scrollToRow],
+    [scrollToRow, events],
   );
 
   const clearEvents = useCallback(() => {
@@ -136,25 +148,38 @@ function Panel() {
           const updated = [...prev, event].slice(-MAX_EVENTS_TO_DISPLAY);
           // If the event with the same UUID already exists, we update it
           if (event.uuid && uuidMapRef.current.has(event.uuid)) {
-            const index = uuidMapRef.current.get(event.uuid)!;
-            if (index < prev.length) {
+            const oldEventSerialNumber = uuidMapRef.current.get(event.uuid)!;
+            if (
+              oldEventSerialNumber >= updated[0].serialNumber &&
+              oldEventSerialNumber < updated[updated.length - 1].serialNumber
+            ) {
+              const offset = updated[0].serialNumber;
+
+              const oldEventIndex = oldEventSerialNumber - offset;
+
               // update the old event to include a link to the new event
-              const oldEvent = updated[index];
-              oldEvent.gotoSerialNumber = event.serialNumber;
-              updated[index] = oldEvent;
+              updated[oldEventIndex] = {
+                ...updated[oldEventIndex],
+                gotoSerialNumber: event.serialNumber,
+              };
+
               // add a link to the old event in the new event
-              updated[updated.length - 1] = { ...event, gotoSerialNumber: index + 1 };
+              updated[updated.length - 1] = {
+                ...updated[updated.length - 1],
+                gotoSerialNumber: oldEventSerialNumber,
+              };
             }
+
             uuidMapRef.current.delete(event.uuid);
           } else if (event.uuid) {
             // If a UUID is encountered for the first time, we store its index
-            uuidMapRef.current.set(event.uuid, updated.length - 1);
+            uuidMapRef.current.set(event.uuid, event.serialNumber);
           }
 
           if (lockToBottomRef.current) {
             requestAnimationFrame(() => {
               requestAnimationFrame(() => {
-                scrollToRow(updated.length, 'bottom');
+                scrollToRow(updated.length - 1, 'bottom');
               });
             });
           }
