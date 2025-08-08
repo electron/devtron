@@ -59,7 +59,7 @@ function trackIpcEvent({
 }: TrackIpcEventOptions) {
   if (excludedIpcChannels.includes(channel)) return;
 
-  if (devtronSW === null) {
+  if (!devtronSW) {
     console.error('The service-worker for Devtron is not registered yet. Cannot track IPC event.');
     return;
   }
