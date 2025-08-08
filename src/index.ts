@@ -13,6 +13,9 @@ interface TrackIpcEventOptions {
   method?: string;
 }
 
+type Channel = string;
+type Listener = any;
+
 let isInstalled = false;
 let isInstalledToDefaultSession = false;
 let devtronSW: Electron.ServiceWorkerMain;
@@ -37,6 +40,7 @@ function trackIpcEvent({
 
   let uuid = '';
   let newArgs = args;
+
   // extract the UUID if it exists
   if (args[0] && typeof args[0] === 'object' && args[0].__uuid__devtron) {
     uuid = args[0].__uuid__devtron;
@@ -208,7 +212,7 @@ async function startServiceWorker(ses: Electron.Session, extension: Electron.Ext
 }
 
 function patchIpcMain() {
-  const listenerMap = new Map<string, Map<any, any>>(); // channel -> (originalListener -> tracked/cleaned Listener)
+  const listenerMap = new Map<Channel, Map<Listener, Listener>>(); // channel -> (originalListener -> tracked/cleaned Listener)
 
   const storeTrackedListener = (channel: string, original: any, tracked: any): void => {
     if (!listenerMap.has(channel)) {
