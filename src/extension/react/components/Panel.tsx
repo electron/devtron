@@ -57,7 +57,7 @@ function Panel() {
   } = useDevtronContext();
 
   /**
-   * uuidMapRef stores the indexes of events that have a UUID.
+   * uuidMapRef stores the serial numbers of events that have a UUID.
    * If an event with the same UUID is received later on, we add a gotoSerialNumber property
    * to the previous event with the same UUID.
    * This allows us to jump between events that are related to each other.
@@ -172,7 +172,7 @@ function Panel() {
 
             uuidMapRef.current.delete(event.uuid);
           } else if (event.uuid) {
-            // If a UUID is encountered for the first time, we store its index
+            // If a UUID is encountered for the first time, we store its serialNumber
             uuidMapRef.current.set(event.uuid, event.serialNumber);
           }
 
