@@ -20,6 +20,32 @@ let isInstalled = false;
 let isInstalledToDefaultSession = false;
 let devtronSW: Electron.ServiceWorkerMain;
 
+const isPayloadWithUuid = (payload: any[]): boolean => {
+  // If the first argument is an object with __uuid__devtron then it is a custom payload
+  return (
+    payload[0] &&
+    typeof payload[0] === 'object' &&
+    payload[0].__uuid__devtron &&
+    Array.isArray(payload[0].args)
+  );
+};
+
+const getArgsFromPayload = (payload: any[]): any[] => {
+  if (isPayloadWithUuid(payload)) {
+    // If the payload is a custom payload, return the args array
+    return payload[0].args || [];
+  }
+  // Otherwise, return the payload as is
+  return payload;
+};
+
+const getUuidFromPayload = (payload: any[]): string => {
+  if (isPayloadWithUuid(payload)) {
+    return payload[0].__uuid__devtron;
+  }
+  return '';
+};
+
 /**
  * sends captured IPC events to the service-worker preload script
  */
@@ -38,14 +64,8 @@ function trackIpcEvent({
     return;
   }
 
-  let uuid = '';
-  let newArgs = args;
-
-  // extract the UUID if it exists
-  if (args[0] && typeof args[0] === 'object' && args[0].__uuid__devtron) {
-    uuid = args[0].__uuid__devtron;
-    newArgs = args[0].args;
-  }
+  const uuid = getUuidFromPayload(args);
+  const newArgs = getArgsFromPayload(args);
 
   const eventData: IpcEventData = {
     direction,
@@ -219,15 +239,6 @@ function patchIpcMain() {
       listenerMap.set(channel, new Map());
     }
     listenerMap.get(channel)!.set(original, tracked);
-  };
-
-  const getArgsFromPayload = (payload: any[]): any[] => {
-    if (payload[0] && typeof payload[0] === 'object' && payload[0].__uuid__devtron) {
-      // If the first argument is an object with __uuid__devtron, return its args property
-      return payload[0].args || [];
-    }
-    // Otherwise, return the payload as is
-    return payload;
   };
 
   const originalOn = ipcMain.on.bind(ipcMain);
