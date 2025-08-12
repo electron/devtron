@@ -1,20 +1,19 @@
 import { app, ipcMain, session } from 'electron';
 import path from 'node:path';
 import { createRequire } from 'node:module';
-import type { Direction, IpcEventData, IpcEventDataIndexed, ServiceWorkerDetails } from './types/shared';
+import type { Channel, Direction, IpcEventData, IpcEventDataIndexed, ServiceWorkerDetails } from './types/shared';
 import { excludedIpcChannels } from './common/constants';
 
 interface TrackIpcEventOptions {
   direction: Direction;
-  channel: string;
+  channel: Channel;
   args: any[];
   devtronSW: Electron.ServiceWorkerMain;
   serviceWorkerDetails?: ServiceWorkerDetails;
   method?: string;
 }
 
-type Channel = string;
-type Listener = any;
+type IpcMainEventListener = (event: Electron.IpcMainEvent, ...args: any[]) => void;
 
 let isInstalled = false;
 let isInstalledToDefaultSession = false;
@@ -87,7 +86,7 @@ function registerIpcListeners(ses: Electron.Session, devtronSW: Electron.Service
     '-ipc-message',
     (
       event: Electron.IpcMainEvent | Electron.IpcMainServiceWorkerEvent,
-      channel: string,
+      channel: Channel,
       args: any[],
     ) => {
       if (event.type === 'frame')
@@ -102,7 +101,7 @@ function registerIpcListeners(ses: Electron.Session, devtronSW: Electron.Service
     '-ipc-invoke',
     (
       event: Electron.IpcMainInvokeEvent | Electron.IpcMainServiceWorkerInvokeEvent,
-      channel: string,
+      channel: Channel,
       args: any[],
     ) => {
       if (event.type === 'frame')
@@ -116,7 +115,7 @@ function registerIpcListeners(ses: Electron.Session, devtronSW: Electron.Service
     '-ipc-message-sync',
     (
       event: Electron.IpcMainEvent | Electron.IpcMainServiceWorkerEvent,
-      channel: string,
+      channel: Channel,
       args: any[],
     ) => {
       if (event.type === 'frame')
@@ -232,9 +231,13 @@ async function startServiceWorker(ses: Electron.Session, extension: Electron.Ext
 }
 
 function patchIpcMain() {
-  const listenerMap = new Map<Channel, Map<Listener, Listener>>(); // channel -> (originalListener -> tracked/cleaned Listener)
+  const listenerMap = new Map<Channel, Map<IpcMainEventListener, IpcMainEventListener>>(); // channel -> (originalListener -> tracked/cleaned Listener)
 
-  const storeTrackedListener = (channel: string, original: any, tracked: any): void => {
+  const storeTrackedListener = (
+    channel: Channel,
+    original: IpcMainEventListener,
+    tracked: IpcMainEventListener,
+  ): void => {
     if (!listenerMap.has(channel)) {
       listenerMap.set(channel, new Map());
     }
@@ -251,11 +254,8 @@ function patchIpcMain() {
   const originalHandleOnce = ipcMain.handleOnce.bind(ipcMain);
   const originalRemoveHandler = ipcMain.removeHandler.bind(ipcMain);
 
-  ipcMain.on = (
-    channel: string,
-    listener: (event: Electron.IpcMainEvent, ...args: any[]) => void,
-  ) => {
-    const cleanedListener = (event: Electron.IpcMainEvent, ...args: any[]) => {
+  ipcMain.on = (channel: Channel, listener: IpcMainEventListener) => {
+    const cleanedListener: IpcMainEventListener = (event, ...args) => {
       const newArgs = getArgsFromPayload(args);
       listener(event, ...newArgs);
     };
@@ -263,10 +263,7 @@ function patchIpcMain() {
     return originalOn(channel, cleanedListener);
   };
 
-  ipcMain.off = (
-    channel: string,
-    listener: (event: Electron.IpcMainEvent, ...args: any[]) => void,
-  ) => {
+  ipcMain.off = (channel: Channel, listener: IpcMainEventListener) => {
     const channelMap = listenerMap.get(channel);
     const cleanedListener = channelMap?.get(listener);
 
@@ -281,22 +278,16 @@ function patchIpcMain() {
     return originalOff(channel, cleanedListener);
   };
 
-  ipcMain.once = (
-    channel: string,
-    listener: (event: Electron.IpcMainEvent, ...args: any[]) => void,
-  ) => {
-    const cleanedListener = (event: Electron.IpcMainEvent, ...args: any[]) => {
+  ipcMain.once = (channel: Channel, listener: IpcMainEventListener) => {
+    const cleanedListener: IpcMainEventListener = (event, ...args) => {
       const newArgs = getArgsFromPayload(args);
       listener(event, ...newArgs);
     };
     return originalOnce(channel, cleanedListener);
   };
 
-  ipcMain.addListener = (
-    channel: string,
-    listener: (event: Electron.IpcMainEvent, ...args: any[]) => void,
-  ) => {
-    const cleanedListener = (event: Electron.IpcMainEvent, ...args: any[]) => {
+  ipcMain.addListener = (channel: Channel, listener: IpcMainEventListener) => {
+    const cleanedListener: IpcMainEventListener = (event, ...args) => {
       const newArgs = getArgsFromPayload(args);
       listener(event, ...newArgs);
     };
@@ -304,10 +295,7 @@ function patchIpcMain() {
     return originalAddListener(channel, cleanedListener);
   };
 
-  ipcMain.removeListener = (
-    channel: string,
-    listener: (event: Electron.IpcMainEvent, ...args: any[]) => void,
-  ) => {
+  ipcMain.removeListener = (channel: Channel, listener: IpcMainEventListener) => {
     const channelMap = listenerMap.get(channel);
     const cleanedListener = channelMap?.get(listener);
 
@@ -323,7 +311,7 @@ function patchIpcMain() {
     return originalRemoveListener(channel, cleanedListener);
   };
 
-  ipcMain.removeAllListeners = (channel?: string) => {
+  ipcMain.removeAllListeners = (channel?: Channel) => {
     if (channel) {
       listenerMap.delete(channel);
       trackIpcEvent({
@@ -349,7 +337,7 @@ function patchIpcMain() {
   };
 
   ipcMain.handle = (
-    channel: string,
+    channel: Channel,
     listener: (event: Electron.IpcMainInvokeEvent, ...args: any[]) => Promise<any> | any,
   ) => {
     const cleanedListener = async (event: Electron.IpcMainInvokeEvent, ...args: any[]) => {
@@ -361,7 +349,7 @@ function patchIpcMain() {
   };
 
   ipcMain.handleOnce = (
-    channel: string,
+    channel: Channel,
     listener: (event: Electron.IpcMainInvokeEvent, ...args: any[]) => Promise<any> | any,
   ) => {
     const cleanedListener = async (event: Electron.IpcMainInvokeEvent, ...args: any[]) => {
@@ -372,7 +360,7 @@ function patchIpcMain() {
     return originalHandleOnce(channel, cleanedListener);
   };
 
-  ipcMain.removeHandler = (channel: string) => {
+  ipcMain.removeHandler = (channel: Channel) => {
     listenerMap.delete(channel);
     trackIpcEvent({ direction: 'main', channel, args: [], devtronSW, method: 'removeHandler' });
     return originalRemoveHandler(channel);

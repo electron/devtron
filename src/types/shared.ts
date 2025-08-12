@@ -8,6 +8,9 @@ export type Direction =
   | 'renderer'
   | 'main';
 
+export type Channel = string;
+export type UUID = string;
+
 export type ServiceWorkerDetails = {
   serviceWorkerVersionId: number;
   serviceWorkerScope: string;
@@ -15,21 +18,23 @@ export type ServiceWorkerDetails = {
 
 export interface IpcEventData {
   direction: Direction;
-  channel: string;
+  channel: Channel;
   args: any[];
   timestamp: number;
   method?: string;
   serviceWorkerDetails?: ServiceWorkerDetails;
   responseTime?: number; // To track response time for `sendSync` and `invoke` methods
-  uuid?: string; // UUID to match requests and responses (for `invoke` and `sendSync` methods on `ipcRenderer`)
+  uuid?: UUID; // UUID to match requests and responses (for `invoke` and `sendSync` methods on `ipcRenderer`)
 }
 
 /* ------------------------------------------------------ */
 
 /* ---------------------- EXTENSION --------------------- */
+export type SerialNumber = number;
+
 export interface IpcEventDataIndexed extends IpcEventData {
-  serialNumber: number;
-  gotoSerialNumber?: number; // For navigating to a specific event in the grid
+  serialNumber: SerialNumber;
+  gotoSerialNumber?: SerialNumber; // For navigating to a specific event in the grid
 }
 
 export type MessagePanel =

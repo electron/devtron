@@ -19,7 +19,7 @@ import {
 import { Ban, Lock, LockOpen, Moon, PanelBottom, PanelRight, Sun } from 'lucide-react';
 import { MSG_TYPE, PORT_NAME } from '../../../common/constants';
 import ResizablePanel from './ResizablePanel';
-import type { IpcEventDataIndexed, MessagePanel } from '../../../types/shared';
+import type { IpcEventDataIndexed, MessagePanel, SerialNumber, UUID } from '../../../types/shared';
 import DirectionBadge from './DirectionBadge';
 import formatTimestamp from '../utils/formatTimestamp';
 import DetailPanel from './DetailPanel';
@@ -33,9 +33,6 @@ ModuleRegistry.registerModules([
   RowApiModule,
 ]);
 import { useDevtronContext } from '../context/context';
-
-type UUID = string;
-type SerialNumber = number;
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -76,7 +73,7 @@ function Panel() {
 
   // go to a row, highlight it and open the detail panel (it uses serialNumber to identify the row)
   const gotoRow = useCallback(
-    (serialNumber: number) => {
+    (serialNumber: SerialNumber) => {
       if (!gridRef.current || events.length === 0) return;
 
       const firstSerial = events[0].serialNumber;
