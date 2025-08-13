@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
+import { useMemo, useState, useEffect, useRef, useCallback, useLayoutEffect } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import type {
   ColDef,
@@ -43,6 +43,7 @@ function Panel() {
   const [selectedRow, setSelectedRow] = useState<IpcEventDataIndexed | null>(null);
   const [showDetailPanel, setShowDetailPanel] = useState<boolean>(false);
   const [isPortReady, setIsPortReady] = useState<boolean>(false);
+  const [shouldScrollToBottom, setShouldScrollToBottom] = useState<boolean>(false);
 
   const {
     theme,
@@ -111,6 +112,16 @@ function Panel() {
     }
   }, [isPortReady]);
 
+  // used to scroll to the bottom of the grid when a new event is added
+  useLayoutEffect(() => {
+    if (shouldScrollToBottom && events.length > 0) {
+      requestAnimationFrame(() => {
+        scrollToRow(events.length - 1, 'bottom');
+      });
+      setShouldScrollToBottom(false);
+    }
+  }, [events.length, scrollToRow, shouldScrollToBottom]);
+
   useEffect(() => {
     // Update lockToBottomRef on first render
     const savedLockToBottom = localStorage.getItem('lockToBottom');
@@ -174,11 +185,8 @@ function Panel() {
           }
 
           if (lockToBottomRef.current) {
-            requestAnimationFrame(() => {
-              requestAnimationFrame(() => {
-                scrollToRow(updated.length - 1, 'bottom');
-              });
-            });
+            // If lockToBottom is true, scroll to the newly added event
+            setShouldScrollToBottom(true);
           }
           return updated;
         });
