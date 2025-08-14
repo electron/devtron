@@ -2,9 +2,11 @@ import { app, session } from 'electron';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import type { Direction, IpcEventData, ServiceWorkerDetails } from './types/shared';
+import { excludedIpcChannels } from './common/constants';
 
 let isInstalled = false;
 let isInstalledToDefaultSession = false;
+let devtronSW: Electron.ServiceWorkerMain;
 
 /**
  * sends captured IPC events to the service-worker preload script
@@ -16,6 +18,13 @@ function trackIpcEvent(
   devtronSW: Electron.ServiceWorkerMain,
   serviceWorkerDetails?: ServiceWorkerDetails,
 ) {
+  if (excludedIpcChannels.includes(channel)) return;
+
+  if (devtronSW === null) {
+    console.error('The service-worker for Devtron is not registered yet. Cannot track IPC event.');
+    return;
+  }
+
   const eventData: IpcEventData = {
     direction,
     channel,
@@ -23,11 +32,6 @@ function trackIpcEvent(
     timestamp: Date.now(),
     serviceWorkerDetails,
   };
-
-  if (devtronSW === null) {
-    console.error('The service-worker for Devtron is not registered yet. Cannot track IPC event.');
-    return;
-  }
   devtronSW.send('devtron-render-event', eventData);
 }
 
@@ -146,6 +150,7 @@ async function startServiceWorker(ses: Electron.Session, extension: Electron.Ext
   try {
     const sw = await ses.serviceWorkers.startWorkerForScope(extension.url);
     sw.startTask();
+    devtronSW = sw;
     registerIpcListeners(ses, sw);
     registerServiceWorkerSendListener(ses, sw);
   } catch (error) {
@@ -163,6 +168,7 @@ async function startServiceWorker(ses: Electron.Session, extension: Electron.Ext
         if (details.scope === extension.url) {
           const sw = await ses.serviceWorkers.startWorkerForScope(extension.url);
           sw.startTask();
+          devtronSW = sw;
           registerIpcListeners(ses, sw);
           registerServiceWorkerSendListener(ses, sw);
           ses.serviceWorkers.removeListener('registration-completed', handleDetails);
@@ -223,6 +229,33 @@ async function install() {
   if (!isInstalledToDefaultSession && app.isReady()) await installToSession(session.defaultSession);
 }
 
+/**
+ * Retrieves the list of IPC events tracked by Devtron.
+ *
+ * - If called before installation or before the Devtron service worker is ready,
+ *   an empty array will be returned.
+ */
+async function getEvents(): Promise<IpcEventData[]> {
+  if (!isInstalled) {
+    console.warn('You are trying to get IPC events before Devtron is installed.');
+    return [];
+  }
+
+  if (!devtronSW) {
+    console.warn('Devtron service-worker is not registered yet. Cannot get IPC events.');
+    return [];
+  }
+
+  devtronSW.send('devtron-get-ipc-events');
+
+  return new Promise((resolve) => {
+    devtronSW.ipc.once('devtron-ipc-events', (event, ipcEvents) => {
+      resolve(ipcEvents);
+    });
+  });
+}
+
 export const devtron = {
   install,
+  getEvents,
 };

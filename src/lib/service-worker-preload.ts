@@ -8,3 +8,13 @@ ipcRenderer.on('devtron-render-event', (event, data) => {
     args: [data],
   });
 });
+
+ipcRenderer.on('devtron-get-ipc-events', () => {
+  const ipcEvents = contextBridge.executeInMainWorld({
+    func: () => {
+      return returnIpcEvents(); // 'returnIpcEvents' is available in the background service-worker
+    },
+    args: [],
+  });
+  ipcRenderer.send('devtron-ipc-events', ipcEvents);
+});
