@@ -58,6 +58,10 @@ function addIpcEvent(event: IpcEventData): void {
   }
 }
 
+function returnIpcEvents(): IpcEventDataIndexed[] {
+  return ipcEvents.toArray();
+}
+
 function handleContentMessage(message: MessageContentScript): void {
   switch (message.type) {
     case MSG_TYPE.ADD_IPC_EVENT:
@@ -89,3 +93,4 @@ chrome.runtime.onConnect.addListener((port) => {
 });
 
 (globalThis as any).addIpcEvent = addIpcEvent;
+(globalThis as any).returnIpcEvents = returnIpcEvents;

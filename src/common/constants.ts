@@ -14,4 +14,10 @@ const MSG_TYPE = {
   SEND_TO_PANEL: 'send-to-panel',
 } as const;
 
-export { PORT_NAME, MSG_TYPE };
+/**
+ * These channels are used internally by Devtron, and tracking them may lead to unnecessary noise.
+ * Hence, they are ignored by Devtron.
+ */
+const excludedIpcChannels = ['devtron-ipc-events'];
+
+export { PORT_NAME, MSG_TYPE, excludedIpcChannels };

@@ -42,6 +42,36 @@ if (isDev) {
 }
 ```
 
+## Devtron API
+
+### `await devtron.install()`
+
+Installs Devtron into the Electron app. Refer to [Configuring an Electron App to use Devtron](#configuring-an-electron-app-to-use-devtron) for installation instructions.
+
+### `await devtron.getEvents()`
+
+Returns a **promise** that resolves to the array of IPC events recorded by the Devtron service worker since installation.
+
+- If the `Clear all events` button in the Devtron UI is clicked, this array will be cleared.
+
+- If the array size exceeds 20,000 events, it will be truncated to the most recent 20,000 events.
+- If called before installation or before the Devtron service worker is ready, an empty array will be returned.
+
+Here's a usage example that keeps logging IPC events every 2 seconds:
+
+```js
+// main.js
+import { devtron } from '@electron/devtron';
+
+// Ensure Devtron is installed before calling getEvents()
+devtron.install();
+
+setInterval(async () => {
+  const ipcEvents = await devtron.getEvents();
+  console.log('IPC Events:', ipcEvents);
+}, 2000);
+```
+
 ## Requirements and Limitations
 
 - Electron version must be 36.0.0 or higher.
