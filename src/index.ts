@@ -1,7 +1,7 @@
 import { app, session } from 'electron';
 import path from 'node:path';
 import { createRequire } from 'node:module';
-import type { Direction, IpcEventData, ServiceWorkerDetails } from './types/shared';
+import type { Direction, IpcEventData, IpcEventDataIndexed, ServiceWorkerDetails } from './types/shared';
 import { excludedIpcChannels } from './common/constants';
 
 let isInstalled = false;
@@ -235,7 +235,7 @@ async function install() {
  * - If called before installation or before the Devtron service worker is ready,
  *   an empty array will be returned.
  */
-async function getEvents(): Promise<IpcEventData[]> {
+async function getEvents(): Promise<IpcEventDataIndexed[]> {
   if (!isInstalled) {
     console.warn('You are trying to get IPC events before Devtron is installed.');
     return [];
