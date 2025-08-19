@@ -1,7 +1,13 @@
 import { app, ipcMain, session } from 'electron';
 import path from 'node:path';
 import { createRequire } from 'node:module';
-import type { Channel, Direction, IpcEventData, IpcEventDataIndexed, ServiceWorkerDetails } from './types/shared';
+import type {
+  Channel,
+  Direction,
+  IpcEventData,
+  IpcEventDataIndexed,
+  ServiceWorkerDetails,
+} from './types/shared';
 import { excludedIpcChannels } from './common/constants';
 
 interface TrackIpcEventOptions {
