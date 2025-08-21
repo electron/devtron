@@ -1,6 +1,6 @@
 import { ipcRenderer } from 'electron';
 import { MSG_TYPE } from '../common/constants';
-import type { Direction, IpcEventData } from '../types/shared';
+import type { Channel, Direction, IpcEventData, UUID } from '../types/shared';
 
 interface PanelMessage {
   source: typeof MSG_TYPE.SEND_TO_PANEL;
@@ -15,9 +15,9 @@ let isInstalled = false;
  * Store tracked listeners in a map so that they can be removed later
  * if the user calls `removeListener`or `removeAllListeners`.
  */
-const listenerMap = new Map<string, Map<IpcListener, IpcListener>>(); // channel -> (originalListener -> trackedListener)
+const listenerMap = new Map<Channel, Map<IpcListener, IpcListener>>(); // channel -> (originalListener -> trackedListener)
 
-function storeTrackedListener(channel: string, original: IpcListener, tracked: IpcListener): void {
+function storeTrackedListener(channel: Channel, original: IpcListener, tracked: IpcListener): void {
   if (!listenerMap.has(channel)) {
     listenerMap.set(channel, new Map());
   }
@@ -36,12 +36,11 @@ export function monitorRenderer(): void {
   const originalAddListener = ipcRenderer.addListener.bind(ipcRenderer);
   const originalRemoveListener = ipcRenderer.removeListener.bind(ipcRenderer);
   const originalRemoveAllListeners = ipcRenderer.removeAllListeners.bind(ipcRenderer);
+  const originalSendSync = ipcRenderer.sendSync.bind(ipcRenderer);
+  const originalInvoke = ipcRenderer.invoke.bind(ipcRenderer);
 
-  ipcRenderer.on = function (
-    channel: string,
-    listener: (event: Electron.IpcRendererEvent, ...args: any[]) => void,
-  ) {
-    const trackedListener = (event: Electron.IpcRendererEvent, ...args: any[]) => {
+  ipcRenderer.on = function (channel: Channel, listener: IpcListener) {
+    const trackedListener: IpcListener = (event, ...args) => {
       track('main-to-renderer', channel, args, 'on');
       listener(event, ...args);
     };
@@ -49,10 +48,7 @@ export function monitorRenderer(): void {
     return originalOn(channel, trackedListener);
   };
 
-  ipcRenderer.off = function (
-    channel: string,
-    listener: (event: Electron.IpcRendererEvent, ...args: any[]) => void,
-  ) {
+  ipcRenderer.off = function (channel: Channel, listener: IpcListener) {
     const channelMap = listenerMap.get(channel);
     const tracked = channelMap?.get(listener);
 
@@ -69,11 +65,8 @@ export function monitorRenderer(): void {
     return originalOff(channel, tracked);
   };
 
-  ipcRenderer.once = function (
-    channel: string,
-    listener: (event: Electron.IpcRendererEvent, ...args: any[]) => void,
-  ) {
-    const trackedListener = (event: Electron.IpcRendererEvent, ...args: any[]) => {
+  ipcRenderer.once = function (channel: Channel, listener: IpcListener) {
+    const trackedListener: IpcListener = (event, ...args) => {
       /**
        * not useful since `.once` = `.on + removeListener`.
        * hence, `.once` will be tracked as `.on` and then `.removeListener`.
@@ -84,11 +77,8 @@ export function monitorRenderer(): void {
     return originalOnce(channel, trackedListener);
   };
 
-  ipcRenderer.addListener = function (
-    channel: string,
-    listener: (event: Electron.IpcRendererEvent, ...args: any[]) => void,
-  ) {
-    const trackedListener = (event: Electron.IpcRendererEvent, ...args: any[]) => {
+  ipcRenderer.addListener = function (channel: Channel, listener: IpcListener) {
+    const trackedListener: IpcListener = (event, ...args) => {
       track('main-to-renderer', channel, args, 'addListener');
       listener(event, ...args);
     };
@@ -96,10 +86,7 @@ export function monitorRenderer(): void {
     return originalAddListener(channel, trackedListener);
   };
 
-  ipcRenderer.removeListener = function (
-    channel: string,
-    listener: (event: Electron.IpcRendererEvent, ...args: any[]) => void,
-  ) {
+  ipcRenderer.removeListener = function (channel: Channel, listener: IpcListener) {
     const channelMap = listenerMap.get(channel);
     const tracked = channelMap?.get(listener);
 
@@ -116,7 +103,7 @@ export function monitorRenderer(): void {
     return originalRemoveListener(channel, tracked);
   };
 
-  ipcRenderer.removeAllListeners = function (channel?: string): Electron.IpcRenderer {
+  ipcRenderer.removeAllListeners = function (channel?: Channel): Electron.IpcRenderer {
     if (channel) {
       listenerMap.delete(channel);
       const result = originalRemoveAllListeners(channel);
@@ -129,18 +116,55 @@ export function monitorRenderer(): void {
       return result;
     }
   };
+
+  ipcRenderer.sendSync = function (channel: Channel, ...args: any[]) {
+    const uuid = crypto.randomUUID(); // uuid is used to match the response with the request
+    const payload = {
+      __uuid__devtron: uuid,
+      args,
+    };
+    const start = performance.now();
+    const result = originalSendSync(channel, payload);
+    const duration = performance.now() - start;
+
+    track('main-to-renderer', channel, [result], 'sendSync (response)', duration, uuid);
+
+    return result;
+  };
+
+  ipcRenderer.invoke = async function (channel: Channel, ...args: any[]): Promise<any> {
+    const uuid = crypto.randomUUID(); // uuid is used to match the response with the request
+    const payload = {
+      __uuid__devtron: uuid,
+      args,
+    };
+    const start = performance.now();
+    const result = await originalInvoke(channel, payload);
+    const duration = performance.now() - start;
+
+    track('main-to-renderer', channel, [result], 'invoke (response)', duration, uuid);
+
+    return result;
+  };
 }
 
-function track(direction: Direction, channel: string, args: any[], method?: string): void {
+function track(
+  direction: Direction,
+  channel: Channel,
+  args: any[],
+  method?: string,
+  responseTime?: number,
+  uuid?: UUID,
+): void {
   const event: IpcEventData = {
     timestamp: Date.now(),
     direction,
     channel,
     args: copyArgs(args),
+    uuid,
   };
-  if (method) {
-    event.method = method;
-  }
+  if (method) event.method = method;
+  if (responseTime) event.responseTime = responseTime;
 
   const message: PanelMessage = {
     source: MSG_TYPE.SEND_TO_PANEL,

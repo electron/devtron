@@ -103,4 +103,13 @@ export const events: IpcEventDataIndexed[] = [
       serviceWorkerVersionId: 32,
     },
   },
+  {
+    serialNumber: 130,
+    direction: 'main-to-renderer',
+    method: 'sendSync (response)',
+    channel: 'sendSync-check',
+    args: ['sync response data'],
+    timestamp: 1749114387250,
+    responseTime: 2000.34,
+  },
 ];
