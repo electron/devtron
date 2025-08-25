@@ -1,5 +1,4 @@
 import type { CustomFilterDisplayProps } from 'ag-grid-react';
-import { useGridFilterDisplay } from 'ag-grid-react';
 import { Check } from 'lucide-react';
 import type { Direction } from '../../../types/shared';
 import DirectionBadge from '../components/DirectionBadge';
@@ -18,8 +17,6 @@ export default function DirectionFilter({
   onModelChange,
 }: CustomFilterDisplayProps<string[]>) {
   const selected: Direction[] = model ?? [];
-
-  useGridFilterDisplay({});
 
   const toggle = (dir: Direction) => {
     if (selected.includes(dir)) {
