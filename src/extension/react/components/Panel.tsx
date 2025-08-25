@@ -287,7 +287,7 @@ function Panel() {
         headerClass: '!h-6 !px-1.5',
         resizable: false,
         filter: 'agTextColumnFilter',
-        filterValueGetter: (params) => JSON.stringify(params.data?.args[0]), // since data is always inside a wrapper array
+        filterValueGetter: (params) => JSON.stringify(params.data?.args),
       },
     ],
     [],
