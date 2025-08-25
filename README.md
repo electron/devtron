@@ -44,9 +44,20 @@ if (isDev) {
 
 ## Devtron API
 
-### `await devtron.install()`
+### `await devtron.install(options)`
 
 Installs Devtron into the Electron app. Refer to [Configuring an Electron App to use Devtron](#configuring-an-electron-app-to-use-devtron) for installation instructions.
+
+#### `Options`
+
+| Option       | Type                                            | Default     | Description                                                                                                                           |
+| ------------ | ----------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `quiet`      | `boolean`                                       | `false`     | Suppresses all logs except `error` level logs from appearing in the terminal. Precisely, it ignores `debug`, `info`, and `warn` logs. |
+| `ignoreLogs` | `Array<'debug' \| 'info' \| 'warn' \| 'error'>` | `undefined` | List of log levels to ignore, e.g. `['debug', 'info']`. Overrides the `quiet` option if both are set.                                 |
+
+```js
+await devtron.install({ quiet: true });
+```
 
 ### `await devtron.getEvents()`
 
