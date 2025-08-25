@@ -5,19 +5,19 @@
   "types": "./dist/types/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/types/index.d.ts",
       "import": "./dist/mjs/index.mjs",
-      "require": "./dist/cjs/index.cjs",
-      "types": "./dist/types/index.d.ts"
+      "require": "./dist/cjs/index.cjs"
     },
     "./service-worker-preload": {
+      "types": "./dist/types/lib/service-worker-preload.d.ts",
       "import": "./dist/mjs/service-worker-preload.mjs",
-      "require": "./dist/cjs/service-worker-preload.cjs",
-      "types": "./dist/types/lib/service-worker-preload.d.ts"
+      "require": "./dist/cjs/service-worker-preload.cjs"
     },
     "./renderer-preload": {
+      "types": "./dist/types/lib/renderer-preload.d.ts",
       "import": "./dist/mjs/renderer-preload.mjs",
-      "require": "./dist/cjs/renderer-preload.cjs",
-      "types": "./dist/types/lib/renderer-preload.d.ts"
+      "require": "./dist/cjs/renderer-preload.cjs"
     }
   },
   "scripts": {
