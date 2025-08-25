@@ -46,9 +46,9 @@ export interface InstallOptions {
    *
    * Possible values for log levels are: 'debug', 'info', 'warn', 'error'
    *
-   * @default [] (no log levels are ignored)
+   * @default undefined (no log levels are ignored)
    */
-  ignoreLogs?: LogLevel[];
+  ignoreLogs?: LogLevel[] | undefined;
 }
 
 /* ------------------------------------------------------ */
