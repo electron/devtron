@@ -42,7 +42,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['spec/**/*.{js,cjs,ts}'],
+    files: ['spec-electron-setup/**/*.{js,cjs,ts}'],
     rules: {
       '@typescript-eslint/no-require-imports': 'off',
     },

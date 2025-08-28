@@ -4,7 +4,7 @@ import electronPath from 'electron';
 import 'colors';
 
 async function main(): Promise<void> {
-  const runnerArgs = ['spec/electron/main.js'];
+  const runnerArgs = ['spec-electron-setup/electron/main.js'];
   const cwd = path.resolve(__dirname, '..', '..');
 
   const { status, signal } = spawnSync(electronPath as unknown as string, runnerArgs, {

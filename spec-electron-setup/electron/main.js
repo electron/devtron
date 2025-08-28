@@ -6,6 +6,20 @@ require('colors');
 const fs = require('node:fs/promises');
 // app.commandLine.appendSwitch('enable-logging');
 
+/**
+ * Terminate the app if an uncaught exception or unhandled rejection occurs
+ * instead of opening a dialog box or leaving the app running.
+ */
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught exception while running main spec:', err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled rejection while running main spec:', reason);
+  process.exit(1);
+});
+
 const pass = '[PASS]'.green;
 const fail = '[FAIL]'.red;
 
@@ -46,8 +60,10 @@ async function maybeExit() {
       console.log(`Main process failures: ${mainFailures}`);
       console.log(`${fail} Test suite finished with ${mainFailures} failure(s).`);
     } else {
-      console.log(`${pass} All tests passed.`);
+      console.log(`${pass} All electron tests passed.`);
     }
+
+    console.log('\n/* ====================================================== */'.cyan);
 
     app.exit(mainFailures > 0 ? 1 : 0);
   }
@@ -77,13 +93,23 @@ async function runMainProcessTests() {
     },
   });
 
+  const mochaOptions = {};
+  if (process.env.MOCHA_REPORTER) {
+    mochaOptions.reporter = process.env.MOCHA_REPORTER;
+  }
+  if (process.env.MOCHA_MULTI_REPORTERS) {
+    mochaOptions.reporterOptions = {
+      reporterEnabled: process.env.MOCHA_MULTI_REPORTERS,
+    };
+  }
+
   const mocha = new Mocha({
     timeout: 10000,
     ui: 'bdd',
     color: true,
   });
 
-  const testFiles = [path.join(__dirname, '..', 'devtron-install-spec.ts')];
+  const testFiles = [path.join(__dirname, '..', '..', 'spec', 'devtron-install-spec.ts')];
 
   if (testFiles.length === 0) {
     console.error('No test files found.');

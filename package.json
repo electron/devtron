@@ -30,7 +30,7 @@
     "lint:eslint": "npx eslint -c eslint.config.mjs",
     "lint": "npx tsc --noEmit && prettier . --check --experimental-cli",
     "lint:fix": "npx prettier . --write --experimental-cli && npm run lint:eslint --fix",
-    "test": "tsx ./spec/scripts/spec-runner.ts"
+    "test": "mocha spec-electron-setup/scripts/mocha-cli.ts"
   },
   "author": "Hitarth Rajput",
   "license": "MIT",
