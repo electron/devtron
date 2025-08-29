@@ -5,31 +5,32 @@
   "types": "./dist/types/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/types/index.d.ts",
       "import": "./dist/mjs/index.mjs",
-      "require": "./dist/cjs/index.cjs",
-      "types": "./dist/types/index.d.ts"
+      "require": "./dist/cjs/index.cjs"
     },
     "./service-worker-preload": {
+      "types": "./dist/types/lib/service-worker-preload.d.ts",
       "import": "./dist/mjs/service-worker-preload.mjs",
-      "require": "./dist/cjs/service-worker-preload.cjs",
-      "types": "./dist/types/lib/service-worker-preload.d.ts"
+      "require": "./dist/cjs/service-worker-preload.cjs"
     },
     "./renderer-preload": {
+      "types": "./dist/types/lib/renderer-preload.d.ts",
       "import": "./dist/mjs/renderer-preload.mjs",
-      "require": "./dist/cjs/renderer-preload.cjs",
-      "types": "./dist/types/lib/renderer-preload.d.ts"
+      "require": "./dist/cjs/renderer-preload.cjs"
     }
   },
   "scripts": {
     "clean": "node -e \"fs.rmSync('dist', { recursive: true, force: true })\"",
-    "build:browser": "webpack --config webpack.extension.config.ts",
+    "build:browser": "cross-env NODE_OPTIONS='--import=tsx' webpack --config webpack.extension.config.ts",
     "build:types": "tsc -b ./tsconfig.types.json",
-    "build:node": "webpack --config webpack.node.config.ts",
+    "build:node": "cross-env NODE_OPTIONS='--import=tsx' webpack --config webpack.node.config.ts",
     "build": "npm run clean && npm run build:node && npm run build:types && npm run build:browser",
-    "dev": "webpack serve --config webpack.dev.config.ts",
+    "dev": "cross-env NODE_OPTIONS='--import=tsx' webpack serve --config webpack.dev.config.ts",
     "lint:eslint": "npx eslint -c eslint.config.mjs",
     "lint": "npx tsc --noEmit && prettier . --check --experimental-cli",
-    "lint:fix": "npx prettier . --write --experimental-cli && npm run lint:eslint --fix"
+    "lint:fix": "npx prettier . --write --experimental-cli && npm run lint:eslint --fix",
+    "test": "mocha spec-electron-setup/scripts/mocha-cli.ts"
   },
   "author": "Hitarth Rajput",
   "license": "MIT",
@@ -47,20 +48,27 @@
   "devDependencies": {
     "@eslint/js": "^9.27.0",
     "@tsconfig/node22": "^22.0.2",
+    "@types/chai": "^5.2.2",
     "@types/chrome": "^0.0.326",
+    "@types/mocha": "^10.0.10",
     "@types/node": "~22.10.7",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@types/webpack-env": "^1.18.8",
+    "chai": "^5.2.1",
+    "colors": "^1.4.0",
     "copy-webpack-plugin": "^13.0.0",
+    "cross-env": "^7.0.3",
     "css-loader": "^7.1.2",
     "electron": "^36.5.0",
     "eslint": "^9.28.0",
+    "eslint-plugin-chai-friendly": "^1.1.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-unicorn": "^59.0.1",
     "globals": "^16.2.0",
     "html-webpack-plugin": "^5.6.3",
+    "mocha": "^11.7.1",
     "postcss": "^8.5.4",
     "postcss-loader": "^8.1.1",
     "postcss-preset-env": "^10.2.1",
@@ -69,6 +77,8 @@
     "style-loader": "^4.0.0",
     "tailwindcss": "^3.4.17",
     "ts-loader": "^9.5.2",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.34.0",
     "webpack": "^5.99.9",
@@ -79,8 +89,8 @@
     "@fontsource-variable/roboto": "^5.2.5",
     "@fontsource/space-mono": "^5.2.5",
     "@microlink/react-json-view": "^1.26.2",
-    "ag-grid-community": "^33.3.2",
-    "ag-grid-react": "^33.3.2",
+    "ag-grid-community": "^34.1.2",
+    "ag-grid-react": "^34.1.2",
     "denque": "^2.1.0",
     "lucide-react": "^0.513.0",
     "react": "^19.1.0",

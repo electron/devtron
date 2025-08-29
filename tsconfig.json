@@ -5,7 +5,7 @@
     "lib": ["DOM"],
     "module": "esnext",
     "moduleResolution": "node",
-    "types": ["chrome", "node", "webpack-env", "electron"],
+    "types": ["chrome", "node", "webpack-env", "electron", "mocha", "chai"],
     "declaration": false,
     "sourceMap": false,
     "outDir": "./dist",
