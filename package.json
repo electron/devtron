@@ -30,6 +30,7 @@
     "lint:eslint": "npx eslint -c eslint.config.mjs",
     "lint": "npx tsc --noEmit && prettier . --check --experimental-cli",
     "lint:fix": "npx prettier . --write --experimental-cli && npm run lint:eslint --fix",
+    "prepublishOnly": "npm run build",
     "test": "mocha spec-electron-setup/scripts/mocha-cli.ts"
   },
   "author": "Hitarth Rajput",
@@ -42,6 +43,13 @@
     "developer tools",
     "ipc"
   ],
+  "bugs": {
+    "url": "https://github.com/electron/devtron/issues"
+  },
+  "homepage": "https://github.com/electron/devtron",
+  "publishConfig": {
+    "provenance": true
+  },
   "engines": {
     "node": ">=22.12.0"
   },
