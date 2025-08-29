@@ -1,32 +1,32 @@
 import type { LogLevel } from '../types/shared';
 
 class Logger {
-  private quiet = false;
-  private ignoreLogs: Set<LogLevel> = new Set();
+  private readonly logLevelMap: Record<LogLevel, number> = {
+    debug: 1,
+    info: 2,
+    warn: 3,
+    error: 4,
+    none: 5,
+  };
 
-  setQuiet(value: boolean) {
-    if (this.quiet === value) return; // no change
+  private currentLogLevel: LogLevel = 'debug';
+  private currentLogLevelIndex: number = this.logLevelMap[this.currentLogLevel];
 
-    this.quiet = value;
+  setLogLevel(level: LogLevel) {
+    if (this.currentLogLevel === level) return; // no change
 
-    // if quiet is true, ignore all logs except 'error'
-    if (this.quiet) {
-      this.ignoreLogs.add('debug');
-      this.ignoreLogs.add('info');
-      this.ignoreLogs.add('warn');
-    } else {
-      this.ignoreLogs.delete('debug');
-      this.ignoreLogs.delete('info');
-      this.ignoreLogs.delete('warn');
+    if (this.logLevelMap[level] === undefined) {
+      console.error(`Invalid log level: ${level}`);
+      return;
     }
-  }
 
-  setIgnoreLogs(levels: LogLevel[]) {
-    this.ignoreLogs = new Set(levels);
+    this.currentLogLevel = level;
+    this.currentLogLevelIndex = this.logLevelMap[level];
   }
 
   private log(level: LogLevel, ...args: any[]) {
-    if (this.ignoreLogs.has(level)) return;
+    if (this.currentLogLevel === 'none') return;
+    if (this.logLevelMap[level] < this.currentLogLevelIndex) return;
 
     switch (level) {
       case 'debug':

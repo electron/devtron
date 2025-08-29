@@ -379,9 +379,8 @@ async function install(options: InstallOptions = {}) {
   if (isInstalled) return;
   isInstalled = true;
 
-  // set logger options
-  if (options.quiet) logger.setQuiet(true);
-  if (options.ignoreLogs) logger.setIgnoreLogs(options.ignoreLogs); // overrides `quiet` option
+  // set log level
+  if (options.logLevel) logger.setLogLevel(options.logLevel);
 
   patchIpcMain();
 

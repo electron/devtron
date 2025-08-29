@@ -27,28 +27,23 @@ export interface IpcEventData {
   uuid?: UUID; // UUID to match requests and responses (for `invoke` and `sendSync` methods on `ipcRenderer`)
 }
 
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'none';
 
 export interface InstallOptions {
   /**
-   * Suppresses all logs except 'error' level logs from
-   * appearing in the terminal.
+   * Sets the minimum log level for the logger.
+   * All messages below the specified level will be ignored.
    *
-   * Precisely, it ignores 'debug', 'info', and 'warn' logs.
+   * Available levels:
+   * - 'debug' — logs: debug, info, warn, error
+   * - 'info'  — logs: info, warn, error
+   * - 'warn'  — logs: warn, error
+   * - 'error' — logs: error only
+   * - 'none'  — disables all logging
    *
-   * @default false
+   * @default 'debug'
    */
-  quiet?: boolean;
-
-  /**
-   * List of log levels to ignore, e.g. ['debug', 'info'].
-   * Overrides the `quiet` option if both are set.
-   *
-   * Possible values for log levels are: 'debug', 'info', 'warn', 'error'
-   *
-   * @default undefined (no log levels are ignored)
-   */
-  ignoreLogs?: LogLevel[] | undefined;
+  logLevel?: LogLevel;
 }
 
 /* ------------------------------------------------------ */
