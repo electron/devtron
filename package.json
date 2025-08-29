@@ -29,7 +29,8 @@
     "dev": "webpack serve --config webpack.dev.config.ts",
     "lint:eslint": "npx eslint -c eslint.config.mjs",
     "lint": "npx tsc --noEmit && prettier . --check --experimental-cli",
-    "lint:fix": "npx prettier . --write --experimental-cli && npm run lint:eslint --fix"
+    "lint:fix": "npx prettier . --write --experimental-cli && npm run lint:eslint --fix",
+    "test": "vitest run"
   },
   "author": "Hitarth Rajput",
   "license": "MIT",
@@ -71,6 +72,7 @@
     "ts-loader": "^9.5.2",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.34.0",
+    "vitest": "^3.2.4",
     "webpack": "^5.99.9",
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.2"
