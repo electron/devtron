@@ -57,7 +57,8 @@ Installs Devtron into the Electron app. Refer to [Configuring an Electron App to
 Examples:
 
 ```js
-await devtron.install({ logLevel: 'warn' }); // Only 'warn' and 'error' logs will appear in the terminal
+// Only 'warn' and 'error' logs will appear in the terminal
+await devtron.install({ logLevel: 'warn' });
 ```
 
 ### `await devtron.getEvents()`
