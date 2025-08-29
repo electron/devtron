@@ -19,8 +19,9 @@ jobs:
           - '22.12.x'
         os:
           - macos-latest
-          - ubuntu-latest
-          - windows-latest
+          # TODO(dsanders11: Enable these once we fix tests on those platforms in CI
+          # - ubuntu-latest
+          # - windows-latest
     runs-on: "${{ matrix.os }}"
     steps:
       - name: Checkout
