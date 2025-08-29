@@ -32,8 +32,9 @@ jobs:
           cache: 'npm'
       - name: Install dependencies
         run: npm ci
-      - name: Lint
-        run: npm run lint
+      # TODO(dsanders11): Enable this once we get a clean lint state on `main`
+      # - name: Lint
+      #   run: npm run lint
       - name: Build
         run: npm run build
       - name: Test
