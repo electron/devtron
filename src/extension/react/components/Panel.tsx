@@ -15,6 +15,11 @@ import {
   ScrollApiModule,
   TooltipModule,
   RowApiModule,
+  TextFilterModule,
+  NumberFilterModule,
+  DateFilterModule,
+  CustomFilterModule,
+  ValidationModule,
 } from 'ag-grid-community';
 import { Ban, Lock, LockOpen, Moon, PanelBottom, PanelRight, Sun } from 'lucide-react';
 import { MSG_TYPE, PORT_NAME } from '../../../common/constants';
@@ -31,8 +36,15 @@ ModuleRegistry.registerModules([
   ScrollApiModule,
   TooltipModule,
   RowApiModule,
+  TextFilterModule,
+  NumberFilterModule,
+  DateFilterModule,
+  CustomFilterModule,
+  ValidationModule,
 ]);
 import { useDevtronContext } from '../context/context';
+import DirectionFilter from '../AgGridFilters/DirectionFilter';
+import { directionDoesFilterPass } from '../AgGridFilters/filters';
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -219,7 +231,7 @@ function Panel() {
         field: 'serialNumber',
         width: 55,
         cellClass: 'flex !p-1 items-center h-full text-xs',
-        headerClass: '!h-6',
+        headerClass: '!h-6 !px-1.5',
       },
       {
         headerName: 'Time',
@@ -229,7 +241,7 @@ function Panel() {
           return formatTimestamp(params.value);
         },
         cellClass: 'flex !p-1 items-center h-full text-xs',
-        headerClass: '!h-6',
+        headerClass: '!h-6 !px-1.5',
       },
       {
         headerName: 'Direction',
@@ -239,14 +251,15 @@ function Panel() {
           return <DirectionBadge direction={params.value} />;
         },
         cellClass: 'flex !p-1 items-center h-full',
-        headerClass: '!h-6',
+        headerClass: '!h-6 !px-1.5',
+        filter: { component: DirectionFilter, doesFilterPass: directionDoesFilterPass },
       },
       {
         headerName: 'Channel',
         field: 'channel',
         flex: 1,
         cellClass: 'font-roboto text-[13px] !p-1 h-full flex items-center',
-        headerClass: '!h-6',
+        headerClass: '!h-6 !px-1.5',
         cellRenderer: (params: ICellRendererParams<IpcEventDataIndexed>) => {
           return (
             <div title={params.value}>
@@ -259,6 +272,7 @@ function Panel() {
             </div>
           );
         },
+        filter: 'agTextColumnFilter',
       },
       {
         headerName: 'Data',
@@ -270,8 +284,10 @@ function Panel() {
           return <span className="truncate font-space-mono text-xs">{preview}</span>;
         },
         cellClass: 'flex !p-1 items-center h-full',
-        headerClass: '!h-6',
+        headerClass: '!h-6 !px-1.5',
         resizable: false,
+        filter: 'agTextColumnFilter',
+        filterValueGetter: (params) => JSON.stringify(params.data?.args),
       },
     ],
     [],
@@ -389,6 +405,7 @@ function Panel() {
             suppressCellFocus={true}
             headerHeight={25}
             rowHeight={29}
+            enableFilterHandlers={true}
           />
         </div>
       </div>
