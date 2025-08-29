@@ -44,9 +44,22 @@ if (isDev) {
 
 ## Devtron API
 
-### `await devtron.install()`
+### `await devtron.install(options)`
 
 Installs Devtron into the Electron app. Refer to [Configuring an Electron App to use Devtron](#configuring-an-electron-app-to-use-devtron) for installation instructions.
+
+#### `Options`
+
+| Option     | Type                                               | Default   | Description                                                                                                                                                                                                                                                                                        |
+| ---------- | -------------------------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `logLevel` | `'debug' \| 'info' \| 'warn' \| 'error' \| 'none'` | `'debug'` | Sets the minimum log level for the logger. Messages below this level are ignored. <br><br> **Levels:** <br>• `debug` — logs: debug, info, warn, error <br>• `info` — logs: info, warn, error <br>• `warn` — logs: warn, error <br>• `error` — logs: error only <br>• `none` — disables all logging |
+
+Examples:
+
+```js
+// Only 'warn' and 'error' logs will appear in the terminal
+await devtron.install({ logLevel: 'warn' });
+```
 
 ### `await devtron.getEvents()`
 
