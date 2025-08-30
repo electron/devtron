@@ -92,5 +92,5 @@ chrome.runtime.onConnect.addListener((port) => {
   }
 });
 
-(globalThis as any).addIpcEvent = addIpcEvent;
-(globalThis as any).returnIpcEvents = returnIpcEvents;
+globalThis.addIpcEvent = addIpcEvent;
+globalThis.returnIpcEvents = returnIpcEvents;
