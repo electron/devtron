@@ -22,11 +22,25 @@ jobs:
           - '22.12.x'
         os:
           - macos-latest
-          # TODO(dsanders11: Enable these once we fix tests on those platforms in CI
-          # - ubuntu-latest
-          # - windows-latest
+          - ubuntu-latest
+          - windows-latest
     runs-on: "${{ matrix.os }}"
     steps:
+      - run: git config --global core.autocrlf input
+      - name: Configure ubuntu
+        if: contains(matrix.os, 'ubuntu')
+        shell: bash
+        run: |-
+          # Setup a virtual display for Electron tests
+          sudo apt install -y xvfb
+          sudo Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+          echo "DISPLAY=:99" >> $GITHUB_ENV
+
+          # Workaround for Electron AppImage apps failing to initialize on Ubuntu due to AppArmor restrictions
+          # Disables unprivileged user namespaces restriction to allow Electron apps to run
+          # Reference: https://github.com/electron/electron/issues/42510
+                     : https://github.com/electron-userland/electron-builder/issues/8440
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
       - name: Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Setup Node.js
