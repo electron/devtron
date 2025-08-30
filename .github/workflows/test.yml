@@ -15,6 +15,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        electron-version:
+          - 36
+          - 37
         node-version:
           - '22.12.x'
         os:
@@ -33,6 +36,8 @@ jobs:
           cache: 'npm'
       - name: Install dependencies
         run: npm ci
+      - name: Install Electron
+        run: npm install "electron@${{ matrix.electron-version }}"
       - name: Lint
         run: npm run lint
       - name: Build
