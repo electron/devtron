@@ -405,6 +405,7 @@ function Panel() {
             suppressCellFocus={true}
             headerHeight={25}
             rowHeight={29}
+            animateRows={false}
             enableFilterHandlers={true}
           />
         </div>
