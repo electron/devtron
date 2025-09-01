@@ -27,7 +27,15 @@ export interface IpcEventData {
   uuid?: UUID; // UUID to match requests and responses (for `invoke` and `sendSync` methods on `ipcRenderer`)
 }
 
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'none';
+export type LogLevelString = 'debug' | 'info' | 'warn' | 'error' | 'none';
+
+export enum LogLevel {
+  debug,
+  info,
+  warn,
+  error,
+  none,
+}
 
 export interface InstallOptions {
   /**
@@ -43,7 +51,7 @@ export interface InstallOptions {
    *
    * @default 'debug'
    */
-  logLevel?: LogLevel;
+  logLevel?: LogLevelString;
 }
 
 /* ------------------------------------------------------ */

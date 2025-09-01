@@ -1,60 +1,51 @@
-import type { LogLevel } from '../types/shared';
+import type { LogLevelString } from '../types/shared';
+import { LogLevel } from '../types/shared';
 
 class Logger {
-  private readonly logLevelMap: Record<LogLevel, number> = {
-    debug: 1,
-    info: 2,
-    warn: 3,
-    error: 4,
-    none: 5,
-  };
+  private currentLogLevel = LogLevel.debug;
 
-  private currentLogLevel: LogLevel = 'debug';
-  private currentLogLevelIndex: number = this.logLevelMap[this.currentLogLevel];
-
-  setLogLevel(level: LogLevel) {
-    if (this.currentLogLevel === level) return; // no change
-
-    if (this.logLevelMap[level] === undefined) {
+  setLogLevel(level: LogLevelString) {
+    if (LogLevel[level] === undefined) {
       console.error(`Invalid log level: ${level}`);
       return;
     }
 
-    this.currentLogLevel = level;
-    this.currentLogLevelIndex = this.logLevelMap[level];
+    if (LogLevel[level] === this.currentLogLevel) return; // no change
+
+    this.currentLogLevel = LogLevel[level];
   }
 
   private log(level: LogLevel, ...args: any[]) {
-    if (this.currentLogLevel === 'none') return;
-    if (this.logLevelMap[level] < this.currentLogLevelIndex) return;
+    if (this.currentLogLevel === LogLevel.none) return;
+    if (level < this.currentLogLevel) return;
 
     switch (level) {
-      case 'debug':
+      case LogLevel.debug:
         console.debug(...args);
         break;
-      case 'info':
+      case LogLevel.info:
         console.log(...args);
         break;
-      case 'warn':
+      case LogLevel.warn:
         console.warn(...args);
         break;
-      case 'error':
+      case LogLevel.error:
         console.error(...args);
         break;
     }
   }
 
   debug(...args: any[]) {
-    this.log('debug', ...args);
+    this.log(LogLevel.debug, ...args);
   }
   info(...args: any[]) {
-    this.log('info', ...args);
+    this.log(LogLevel.info, ...args);
   }
   warn(...args: any[]) {
-    this.log('warn', ...args);
+    this.log(LogLevel.warn, ...args);
   }
   error(...args: any[]) {
-    this.log('error', ...args);
+    this.log(LogLevel.error, ...args);
   }
 }
 
