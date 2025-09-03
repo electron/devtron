@@ -18,6 +18,7 @@ jobs:
         electron-version:
           - 36
           - 37
+          - 38
         node-version:
           - '22.12.x'
         os:
