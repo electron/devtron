@@ -2,6 +2,7 @@
   "name": "@electron/devtron",
   "version": "0.0.0-development",
   "description": "Electron DevTools Extension to track IPC events",
+  "repository": "https://github.com/electron/devtron",
   "types": "./dist/types/index.d.ts",
   "exports": {
     ".": {
