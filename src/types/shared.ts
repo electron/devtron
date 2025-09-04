@@ -27,6 +27,33 @@ export interface IpcEventData {
   uuid?: UUID; // UUID to match requests and responses (for `invoke` and `sendSync` methods on `ipcRenderer`)
 }
 
+export type LogLevelString = 'debug' | 'info' | 'warn' | 'error' | 'none';
+
+export enum LogLevel {
+  debug,
+  info,
+  warn,
+  error,
+  none,
+}
+
+export interface InstallOptions {
+  /**
+   * Sets the minimum log level for the logger.
+   * All messages below the specified level will be ignored.
+   *
+   * Available levels:
+   * - 'debug' — logs: debug, info, warn, error
+   * - 'info'  — logs: info, warn, error
+   * - 'warn'  — logs: warn, error
+   * - 'error' — logs: error only
+   * - 'none'  — disables all logging
+   *
+   * @default 'debug'
+   */
+  logLevel?: LogLevelString;
+}
+
 /* ------------------------------------------------------ */
 
 /* ---------------------- EXTENSION --------------------- */

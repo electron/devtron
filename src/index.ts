@@ -4,11 +4,13 @@ import { createRequire } from 'node:module';
 import type {
   Channel,
   Direction,
+  InstallOptions,
   IpcEventData,
   IpcEventDataIndexed,
   ServiceWorkerDetails,
 } from './types/shared';
 import { excludedIpcChannels } from './common/constants';
+import { logger } from './utils/Logger';
 
 interface TrackIpcEventOptions {
   direction: Direction;
@@ -65,7 +67,7 @@ function trackIpcEvent({
   if (excludedIpcChannels.includes(channel)) return;
 
   if (!devtronSW) {
-    console.error('The service-worker for Devtron is not registered yet. Cannot track IPC event.');
+    logger.warn('The service-worker for Devtron is not registered yet. Cannot track IPC event.');
     return;
   }
 
@@ -208,7 +210,7 @@ async function startServiceWorker(ses: Electron.Session, extension: Electron.Ext
     registerIpcListeners(ses, sw);
     registerServiceWorkerSendListener(ses, sw);
   } catch (error) {
-    console.warn(`Failed to start Devtron service-worker (${error}), trying again...`);
+    logger.warn(`Failed to start Devtron service-worker (${error}), trying again...`);
     /**
      * This is a workaround for the issue where the Devtron service-worker fails to start
      * when the Electron app is launched for the first time, or when the service worker
@@ -226,12 +228,12 @@ async function startServiceWorker(ses: Electron.Session, extension: Electron.Ext
           registerIpcListeners(ses, sw);
           registerServiceWorkerSendListener(ses, sw);
           ses.serviceWorkers.removeListener('registration-completed', handleDetails);
-          console.log(`Devtron service-worker started successfully`);
+          logger.info(`Devtron service-worker started successfully`);
         }
       };
       ses.serviceWorkers.on('registration-completed', handleDetails);
     } catch (error) {
-      console.error('Failed to start Devtron service-worker:', error);
+      logger.error('Failed to start Devtron service-worker:', error);
     }
   }
 }
@@ -373,9 +375,12 @@ function patchIpcMain() {
   };
 }
 
-async function install() {
+async function install(options: InstallOptions = {}) {
   if (isInstalled) return;
   isInstalled = true;
+
+  // set log level
+  if (options.logLevel) logger.setLogLevel(options.logLevel);
 
   patchIpcMain();
 
@@ -410,9 +415,9 @@ async function install() {
       const extensionPath = path.resolve(serviceWorkerPreloadPath, '..', '..', 'extension');
       devtron = await ses.extensions.loadExtension(extensionPath, { allowFileAccess: true });
       await startServiceWorker(ses, devtron);
-      console.log('Devtron loaded successfully');
+      logger.info('Devtron loaded successfully');
     } catch (error) {
-      console.error('Failed to load Devtron:', error);
+      logger.error('Failed to load Devtron:', error);
     }
   };
 
@@ -430,12 +435,12 @@ async function install() {
  */
 async function getEvents(): Promise<IpcEventDataIndexed[]> {
   if (!isInstalled) {
-    console.warn('You are trying to get IPC events before Devtron is installed.');
+    logger.warn('You are trying to get IPC events before Devtron is installed.');
     return [];
   }
 
   if (!devtronSW) {
-    console.warn('Devtron service-worker is not registered yet. Cannot get IPC events.');
+    logger.warn('Devtron service-worker is not registered yet. Cannot get IPC events.');
     return [];
   }
 
