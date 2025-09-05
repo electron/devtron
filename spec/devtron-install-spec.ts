@@ -26,10 +26,44 @@ async function getEvents(): Promise<IpcEventDataIndexed[]> {
 
 describe('Devtron Installation', () => {
   /* --------------- test on defaultSession --------------- */
-  before(async () => {
+  before(async function () {
+    this.timeout(60 * 1000);
+
     if (!session.defaultSession) throw new Error('Default session is not available');
 
+    const waitForServiceWorker = new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('Service worker did not start within 60 seconds'));
+      }, 60 * 1000);
+
+      const listener = (
+        details: Electron.Event<Electron.ServiceWorkersRunningStatusChangedEventParams>,
+      ) => {
+        if (details.runningStatus === 'running') {
+          const devtronExtUrl = session.defaultSession.extensions
+            .getAllExtensions()
+            .find((ext) => ext.name === 'devtron')?.url;
+
+          const swScope = session.defaultSession.serviceWorkers.getInfoFromVersionID(
+            details.versionId,
+          ).scope;
+
+          if (devtronExtUrl !== swScope) return;
+
+          clearTimeout(timeout);
+          devtronSW = session.defaultSession.serviceWorkers.getWorkerFromVersionID(
+            details?.versionId,
+          );
+          session.defaultSession.serviceWorkers.removeListener('running-status-changed', listener);
+          resolve();
+        }
+      };
+
+      session.defaultSession.serviceWorkers.on('running-status-changed', listener);
+    });
+
     await devtron.install();
+    await waitForServiceWorker;
   });
 
   it('should load the extension in defaultSession', () => {
@@ -90,28 +124,22 @@ describe('Devtron Installation', () => {
   });
 });
 
-function registerDevtronIpc() {
-  if (!devtronSW) {
-    let devtronId = '';
-    session.defaultSession.extensions.getAllExtensions().map((ext) => {
-      if (ext.name === 'devtron') devtronId = ext.id;
-    });
-
-    const allRunning = session.defaultSession.serviceWorkers.getAllRunning();
-    for (const vid in allRunning) {
-      const swInfo = allRunning[vid];
-      if (devtronId && swInfo.scope.includes(devtronId)) {
-        devtronSW = session.defaultSession.serviceWorkers.getWorkerFromVersionID(Number(vid));
-      }
-    }
-  }
-}
-
 describe('Tracking IPC Events', () => {
   const mainWindow = BrowserWindow.getAllWindows()[0];
   if (!mainWindow) throw new Error('Main window is not available');
 
-  before(async () => {
+  before(async function () {
+    this.timeout(20 * 1000);
+
+    // wait until webContents is ready
+    await new Promise<void>((resolve) => {
+      const wc = mainWindow.webContents;
+      if (!wc.isLoading()) {
+        return resolve(); // already loaded
+      }
+      wc.once('did-finish-load', () => resolve());
+    });
+
     ipcMain.on('test-main-on', () => {});
 
     ipcMain.on('test-main-sendSync', (event) => {
@@ -127,9 +155,6 @@ describe('Tracking IPC Events', () => {
     ipcMain.handleOnce('test-main-handle-once', async () => {
       return 'handled';
     });
-
-    await delay(3000); // If some test fails when it shouldn't, try increasing this delay
-    registerDevtronIpc();
 
     mainWindow.webContents.send('test-renderer-on', 'arg1', 'arg2');
     mainWindow.webContents.send('test-renderer-addListener', 'arg1', 'arg2');
@@ -154,7 +179,7 @@ describe('Tracking IPC Events', () => {
     ipcMain.removeAllListeners('test-main-removeAllListeners');
     ipcMain.removeHandler('test-main-removeHandler');
 
-    await delay(300);
+    await delay(3000); // wait for events to be processed
 
     /**
      * During testing, the `devtronSW` variable in "src/index.ts"
