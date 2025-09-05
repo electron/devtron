@@ -1,5 +1,8 @@
 # <img src="https://cloud.githubusercontent.com/assets/378023/15063285/cf554e40-1383-11e6-9b9c-45d381b03f9f.png" width="60px" align="center" alt="Devtron icon"> Devtron
 
+[![Test](https://github.com/electron/devtron/actions/workflows/test.yml/badge.svg)](https://github.com/electron/devtron/actions/workflows/test.yml)
+[![npm version](http://img.shields.io/npm/v/@electron/devtron.svg)](https://npmjs.org/package/@electron/devtron)
+
 > [!NOTE]
 > This project is under development and subject to change.
 
