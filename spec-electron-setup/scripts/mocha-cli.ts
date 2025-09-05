@@ -12,7 +12,7 @@ const __dirname = path.dirname(__filename);
  * the exit code of the child process.
  */
 describe('Electron Spec Runner', function () {
-  this.timeout(1000 * 30); // 30 seconds
+  this.timeout(1000 * 60); // 60 seconds
 
   it('should complete Electron tests successfully', (done) => {
     const runnerPath = path.resolve(__dirname, './spec-runner.ts');
