@@ -26,7 +26,7 @@ jobs:
         with:
           node-version-file: .nvmrc
       - name: Install
-        run: npm ci
+        run: yarn install --immutable
       - uses: continuousauth/action@4e8a2573eeb706f6d7300d6a9f3ca6322740b72d # v1.0.5
         timeout-minutes: 60
         with:
