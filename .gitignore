@@ -6,3 +6,4 @@ build
 todo.md
 
 **/*.tsbuildinfo
+.yarn/install-state.gz
