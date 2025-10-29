@@ -19,6 +19,7 @@ jobs:
           - 36
           - 37
           - 38
+          - 39
         node-version:
           - '22.12.x'
         os:
