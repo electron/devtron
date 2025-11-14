@@ -2,7 +2,7 @@ import type { LogLevelString } from '../types/shared';
 import { LogLevel } from '../types/shared';
 
 class Logger {
-  private currentLogLevel = LogLevel.debug;
+  private currentLogLevel = LogLevel.warn;
 
   setLogLevel(level: LogLevelString) {
     if (LogLevel[level] === undefined) {
