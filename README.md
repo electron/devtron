@@ -8,15 +8,17 @@
 
 ## Building and Development
 
+This project uses [Yarn 4](https://yarnpkg.com/) to manage dependencies.
+
+To get started:
+
 - Clone the repository to your local machine
-- Run `npm install` to install dependencies
-- Run `npm link` to link the package globally
-- Run `npm run build` to build the project
+- Run `yarn install` to install dependencies
+- Run `yarn build` to build the project
 
-#### Configuring an Electron App to use Devtron
+### Configuring an Electron App to use Devtron
 
-- In your Electron app run `npm link @electron/devtron` to link the Devtron package
-- In your Electron app's `main.js` (or other relevant file) add the following code to load Devtron:
+- In your Electron app's main entry point, add the following code to load Devtron:
 
 ```js
 // main.js
@@ -66,7 +68,7 @@ await devtron.install({ logLevel: 'warn' });
 
 ### `await devtron.getEvents()`
 
-Returns a **promise** that resolves to the array of IPC events recorded by the Devtron service worker since installation.
+Returns a **Promise** that resolves to the array of IPC events recorded by the Devtron service worker since installation.
 
 - If the `Clear all events` button in the Devtron UI is clicked, this array will be cleared.
 
