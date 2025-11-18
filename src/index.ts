@@ -27,6 +27,12 @@ let isInstalled = false;
 let isInstalledToDefaultSession = false;
 let devtronSW: Electron.ServiceWorkerMain;
 
+/**
+ * Count the number of IPC calls that were made before the service worker was ready.
+ * Used for logging purposes.
+ */
+let untrackedIpcCalls = 0;
+
 const isPayloadWithUuid = (payload: any[]): boolean => {
   // If the first argument is an object with __uuid__devtron then it is a custom payload
   return (
@@ -67,7 +73,10 @@ function trackIpcEvent({
   if (excludedIpcChannels.includes(channel)) return;
 
   if (!devtronSW) {
-    logger.warn('The service-worker for Devtron is not registered yet. Cannot track IPC event.');
+    logger.info(
+      `The service worker for Devtron is not registered yet. Cannot track ${direction} IPC event for channel ${channel}.`,
+    );
+    untrackedIpcCalls++;
     return;
   }
 
@@ -415,7 +424,12 @@ async function install(options: InstallOptions = {}) {
       const extensionPath = path.resolve(serviceWorkerPreloadPath, '..', '..', 'extension');
       devtron = await ses.extensions.loadExtension(extensionPath, { allowFileAccess: true });
       await startServiceWorker(ses, devtron);
-      logger.info('Devtron loaded successfully');
+      if (untrackedIpcCalls > 0) {
+        logger.warn(
+          `${untrackedIpcCalls} untracked IPC events were dispatched before the service worker was ready.`,
+        );
+      }
+      logger.info('Devtron service worker loaded successfully');
     } catch (error) {
       logger.error('Failed to load Devtron:', error);
     }
@@ -440,7 +454,7 @@ async function getEvents(): Promise<IpcEventDataIndexed[]> {
   }
 
   if (!devtronSW) {
-    logger.warn('Devtron service-worker is not registered yet. Cannot get IPC events.');
+    logger.warn('Devtron service worker is not registered yet. Cannot get IPC events.');
     return [];
   }
 
