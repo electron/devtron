@@ -52,6 +52,19 @@ export interface InstallOptions {
    * @default 'debug'
    */
   logLevel?: LogLevelString;
+  /**
+   * List of IPC channels that should be excluded from Devtron's payload wrapping.
+   * Handlers for these channels will receive original arguments instead of wrapped payloads.
+   * This is useful for libraries that register IPC handlers before devtron.install() is called.
+   *
+   * @example
+   * ```ts
+   * devtron.install({
+   *   excludeChannels: ['bugsnag::renderer-to-main', 'bugsnag::renderer-to-main-sync']
+   * });
+   * ```
+   */
+  excludeChannels?: Channel[];
 }
 
 /* ------------------------------------------------------ */
