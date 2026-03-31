@@ -50,14 +50,14 @@ jobs:
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version: "${{ matrix.node-version }}"
-          cache: 'npm'
+          cache: 'yarn'
       - name: Install dependencies
         run: yarn install --immutable
-      - name: Install Electron
-        run: npm install "electron@${{ matrix.electron-version }}"
       - name: Lint
         run: npm run lint
       - name: Build
         run: npm run build
       - name: Test
         run: npm run test
+        env:
+          ELECTRON_PKG: electron${{ matrix.electron-version }}

@@ -1,13 +1,14 @@
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
-import electronPath from 'electron';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const electronPath: string = require(process.env.ELECTRON_PKG || 'electron');
 import 'colors';
 
 async function main(): Promise<void> {
   const runnerArgs = ['spec-electron-setup/electron/main.js'];
   const cwd = path.resolve(__dirname, '..', '..');
 
-  const { status, signal } = spawnSync(electronPath as unknown as string, runnerArgs, {
+  const { status, signal } = spawnSync(electronPath, runnerArgs, {
     cwd,
     stdio: 'inherit',
   });
