@@ -628,6 +628,11 @@ __metadata:
     css-loader: "npm:^7.1.2"
     denque: "npm:^2.1.0"
     electron: "npm:^36.5.0"
+    electron36: "npm:electron@^36"
+    electron37: "npm:electron@^37"
+    electron38: "npm:electron@^38"
+    electron39: "npm:electron@^39"
+    electron40: "npm:electron@^40"
     eslint: "npm:^9.28.0"
     eslint-plugin-chai-friendly: "npm:^1.1.0"
     eslint-plugin-react: "npm:^7.37.5"
@@ -656,6 +661,16 @@ __metadata:
     webpack-dev-server: "npm:^5.2.2"
   dependenciesMeta:
     electron:
+      built: true
+    electron36:
+      built: true
+    electron37:
+      built: true
+    electron38:
+      built: true
+    electron39:
+      built: true
+    electron40:
       built: true
   languageName: unknown
   linkType: soft
@@ -1557,6 +1572,15 @@ __metadata:
   dependencies:
     undici-types: "npm:~6.21.0"
   checksum: 10c0/54473730e7417b923fec427f62ed3204259acbd8e450a7593bad8ae02a75effcfcc864b34bf02c108eeb9c04a404791687f42b801bafa5264a8761f4df9122fd
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^24.9.0":
+  version: 24.12.0
+  resolution: "@types/node@npm:24.12.0"
+  dependencies:
+    undici-types: "npm:~7.16.0"
+  checksum: 10c0/8b31c0af5b5474f13048a4e77c57f22cd4f8fe6e58c4b6fde9456b0c13f46a5bfaf5744ff88fd089581de9f0d6e99c584e022681de7acb26a58d258c654c4843
   languageName: node
   linkType: hard
 
@@ -3477,6 +3501,71 @@ __metadata:
   version: 1.5.283
   resolution: "electron-to-chromium@npm:1.5.283"
   checksum: 10c0/2ff8670d94ec49d2b12ae5d8ffb0208dde498d8a112ebb8016aac90171c7ee0860c7d8f78269afd3a3b7cba6dece3c49dd350cd240cc0f9a73a804699746798e
+  languageName: node
+  linkType: hard
+
+"electron36@npm:electron@^36":
+  version: 36.9.5
+  resolution: "electron@npm:36.9.5"
+  dependencies:
+    "@electron/get": "npm:^2.0.0"
+    "@types/node": "npm:^22.7.7"
+    extract-zip: "npm:^2.0.1"
+  bin:
+    electron: cli.js
+  checksum: 10c0/85f7239e6912dba8dcab133b51c12e730e3da083877226d8f783d938779023f76b6a1012e8587a21944cd84491b69b376c3ab9d334ee81e4b7e87301ccfa0c44
+  languageName: node
+  linkType: hard
+
+"electron37@npm:electron@^37":
+  version: 37.10.3
+  resolution: "electron@npm:37.10.3"
+  dependencies:
+    "@electron/get": "npm:^2.0.0"
+    "@types/node": "npm:^22.7.7"
+    extract-zip: "npm:^2.0.1"
+  bin:
+    electron: cli.js
+  checksum: 10c0/a09c10d76be021a94f6c8b251ef990553fe530a6a1271c22026f06a502e977fac116a88b78e73abf50177386a76d69b1c9a52f62d6de60006cc50ed4cb969f0f
+  languageName: node
+  linkType: hard
+
+"electron38@npm:electron@^38":
+  version: 38.8.6
+  resolution: "electron@npm:38.8.6"
+  dependencies:
+    "@electron/get": "npm:^2.0.0"
+    "@types/node": "npm:^22.7.7"
+    extract-zip: "npm:^2.0.1"
+  bin:
+    electron: cli.js
+  checksum: 10c0/4e3c02a01b99a77d715a28ec1b1053382860c3100a735adae5784387e38f7cb800313aeb2c9d292297f37237b57b8660bafcf913360a6b68865a45642a495264
+  languageName: node
+  linkType: hard
+
+"electron39@npm:electron@^39":
+  version: 39.8.5
+  resolution: "electron@npm:39.8.5"
+  dependencies:
+    "@electron/get": "npm:^2.0.0"
+    "@types/node": "npm:^22.7.7"
+    extract-zip: "npm:^2.0.1"
+  bin:
+    electron: cli.js
+  checksum: 10c0/21448e3d69a5e96912ce84533d39e7258be17879502cfed30bcdd6581b61516a1d1f3b492aad20344367967229bce27018625047f7ee6801257df93bf6b96d97
+  languageName: node
+  linkType: hard
+
+"electron40@npm:electron@^40":
+  version: 40.8.5
+  resolution: "electron@npm:40.8.5"
+  dependencies:
+    "@electron/get": "npm:^2.0.0"
+    "@types/node": "npm:^24.9.0"
+    extract-zip: "npm:^2.0.1"
+  bin:
+    electron: cli.js
+  checksum: 10c0/3874115299b101bada7f243afd1e0479c88a11fa534171a3d60d7933f4f0c382ef8e58aeaf91c963a2bb4d087ef3cd68065796b611a1dbaeb4b1205e680a23bd
   languageName: node
   linkType: hard
 
@@ -8726,6 +8815,13 @@ __metadata:
   version: 7.14.0
   resolution: "undici-types@npm:7.14.0"
   checksum: 10c0/e7f3214b45d788f03c51ceb33817be99c65dae203863aa9386b3ccc47201a245a7955fc721fb581da9c888b6ebad59fa3f53405214afec04c455a479908f0f14
+  languageName: node
+  linkType: hard
+
+"undici-types@npm:~7.16.0":
+  version: 7.16.0
+  resolution: "undici-types@npm:7.16.0"
+  checksum: 10c0/3033e2f2b5c9f1504bdc5934646cb54e37ecaca0f9249c983f7b1fc2e87c6d18399ebb05dc7fd5419e02b2e915f734d872a65da2e3eeed1813951c427d33cc9a
   languageName: node
   linkType: hard
 

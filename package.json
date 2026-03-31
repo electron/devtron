@@ -70,6 +70,11 @@
     "cross-env": "^7.0.3",
     "css-loader": "^7.1.2",
     "electron": "^36.5.0",
+    "electron36": "npm:electron@^36",
+    "electron37": "npm:electron@^37",
+    "electron38": "npm:electron@^38",
+    "electron39": "npm:electron@^39",
+    "electron40": "npm:electron@^40",
     "eslint": "^9.28.0",
     "eslint-plugin-chai-friendly": "^1.1.0",
     "eslint-plugin-react": "^7.37.5",
@@ -115,6 +120,21 @@
   "packageManager": "yarn@4.10.3+sha512.c38cafb5c7bb273f3926d04e55e1d8c9dfa7d9c3ea1f36a4868fa028b9e5f72298f0b7f401ad5eb921749eb012eb1c3bb74bf7503df3ee43fd600d14a018266f",
   "dependenciesMeta": {
     "electron": {
+      "built": true
+    },
+    "electron36": {
+      "built": true
+    },
+    "electron37": {
+      "built": true
+    },
+    "electron38": {
+      "built": true
+    },
+    "electron39": {
+      "built": true
+    },
+    "electron40": {
       "built": true
     }
   }
