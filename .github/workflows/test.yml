@@ -54,7 +54,7 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
       - name: Install Electron
-        run: npm install "electron@${{ matrix.electron-version }}"
+        run: npm install --no-save "electron@${{ matrix.electron-version }}"
       - name: Lint
         run: npm run lint
       - name: Build

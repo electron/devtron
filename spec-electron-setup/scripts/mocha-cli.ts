@@ -16,7 +16,7 @@ describe('Electron Spec Runner', function () {
 
   it('should complete Electron tests successfully', (done) => {
     const runnerPath = path.resolve(__dirname, './spec-runner.ts');
-    const child = spawn('npx', ['--no', 'tsx', `"${runnerPath}"`], { stdio: 'inherit', shell: true });
+    const child = spawn('yarn', ['tsx', `"${runnerPath}"`], { stdio: 'inherit', shell: true });
 
     child.on('close', (code) => {
       expect(code).to.equal(0, 'Electron exited with non-zero status');
