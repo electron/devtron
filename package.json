@@ -69,7 +69,7 @@
     "copy-webpack-plugin": "^13.0.0",
     "cross-env": "^7.0.3",
     "css-loader": "^7.1.2",
-    "electron": "^36.5.0",
+    "electron": "^39.8.4",
     "electron36": "npm:electron@^36",
     "electron37": "npm:electron@^37",
     "electron38": "npm:electron@^38",
