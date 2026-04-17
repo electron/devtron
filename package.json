@@ -28,11 +28,20 @@
     "build:node": "cross-env NODE_OPTIONS='--import=tsx' webpack --config webpack.node.config.ts",
     "build": "npm run clean && npm run build:node && npm run build:types && npm run build:browser",
     "dev": "cross-env NODE_OPTIONS='--import=tsx' webpack serve --config webpack.dev.config.ts",
-    "lint:eslint": "eslint -c eslint.config.mjs",
-    "lint": "tsc --noEmit && prettier . --check --experimental-cli",
-    "lint:fix": "prettier . --write --experimental-cli && npm run lint:eslint --fix",
+    "lint": "oxfmt --check . && oxlint",
+    "lint:fix": "oxfmt --write . && oxlint --fix",
+    "prepare": "husky",
     "prepublishOnly": "npm run build",
     "test": "mocha spec-electron-setup/scripts/mocha-cli.ts"
+  },
+  "lint-staged": {
+    "*.{js,ts,jsx,tsx}": [
+      "oxfmt --write",
+      "oxlint --fix"
+    ],
+    "*.{json,css,html}": [
+      "oxfmt --write"
+    ]
   },
   "author": "Hitarth Rajput",
   "license": "MIT",
@@ -55,7 +64,6 @@
     "node": ">=22.12.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.27.0",
     "@tsconfig/node22": "^22.0.2",
     "@types/chai": "^5.2.2",
     "@types/chrome": "^0.0.326",
@@ -75,26 +83,22 @@
     "electron38": "npm:electron@^38",
     "electron39": "npm:electron@^39",
     "electron40": "npm:electron@^40",
-    "eslint": "^9.28.0",
-    "eslint-plugin-chai-friendly": "^1.1.0",
-    "eslint-plugin-react": "^7.37.5",
-    "eslint-plugin-react-hooks": "^5.2.0",
-    "eslint-plugin-unicorn": "^59.0.1",
-    "globals": "^16.2.0",
     "html-webpack-plugin": "^5.6.3",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
     "mocha": "^11.7.1",
+    "oxfmt": "^0.44.0",
+    "oxlint": "^1.59.0",
+    "oxlint-tsgolint": "^0.20.0",
     "postcss": "^8.5.4",
     "postcss-loader": "^8.1.1",
     "postcss-preset-env": "^10.2.1",
-    "prettier": "^3.6.2",
-    "prettier-plugin-tailwindcss": "^0.6.13",
     "style-loader": "^4.0.0",
     "tailwindcss": "^3.4.17",
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
     "tsx": "^4.20.3",
-    "typescript": "^5.8.3",
-    "typescript-eslint": "^8.34.0",
+    "typescript": "^6.0.2",
     "webpack": "^5.99.9",
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.2"

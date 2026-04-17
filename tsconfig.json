@@ -3,11 +3,12 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "lib": ["DOM"],
-    "module": "esnext",
-    "moduleResolution": "node",
+    "module": "preserve",
+    "moduleResolution": "bundler",
     "types": ["chrome", "node", "webpack-env", "electron", "mocha", "chai"],
     "declaration": false,
     "sourceMap": false,
+    "rootDir": "./src",
     "outDir": "./dist",
     "forceConsistentCasingInFileNames": true
   },
