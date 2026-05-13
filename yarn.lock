@@ -632,6 +632,8 @@ __metadata:
     electron38: "npm:electron@^38"
     electron39: "npm:electron@^39"
     electron40: "npm:electron@^40"
+    electron41: "npm:electron@^41"
+    electron42: "npm:electron@^42"
     html-webpack-plugin: "npm:^5.6.3"
     husky: "npm:^9.1.7"
     lint-staged: "npm:^16.4.0"
@@ -686,6 +688,24 @@ __metadata:
     global-agent:
       optional: true
   checksum: 10c0/148957d531bac50c29541515f2483c3e5c9c6ba9f0269a5d536540d2b8d849188a89588f18901f3a84c2b4fd376d1e0c5ea2159eb2d17bda68558f57df19015e
+  languageName: node
+  linkType: hard
+
+"@electron/get@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "@electron/get@npm:5.0.0"
+  dependencies:
+    debug: "npm:^4.1.1"
+    env-paths: "npm:^3.0.0"
+    graceful-fs: "npm:^4.2.11"
+    progress: "npm:^2.0.3"
+    semver: "npm:^7.6.3"
+    sumchecker: "npm:^3.0.1"
+    undici: "npm:^7.24.4"
+  dependenciesMeta:
+    undici:
+      optional: true
+  checksum: 10c0/6f40ac6a5cb6be6178b3218f2be771351da8d06bb1ab3e15b5e5b785c9480d71e177c645fc96b06c717672018bbcb81d125da0a59fb0b2aaae7076db73360fd0
   languageName: node
   linkType: hard
 
@@ -3500,6 +3520,33 @@ __metadata:
   languageName: node
   linkType: hard
 
+"electron41@npm:electron@^41":
+  version: 41.5.0
+  resolution: "electron@npm:41.5.0"
+  dependencies:
+    "@electron/get": "npm:^2.0.0"
+    "@types/node": "npm:^24.9.0"
+    extract-zip: "npm:^2.0.1"
+  bin:
+    electron: cli.js
+  checksum: 10c0/5d311e7d411cc5372a6f1eed644776353a781c63122bfc8e70ef00bf5aaf78293e4bca8ccbbacbd7217c7ce72b35e25e4f9f97ced974d97e24e9912e570ee7c5
+  languageName: node
+  linkType: hard
+
+"electron42@npm:electron@^42":
+  version: 42.0.0
+  resolution: "electron@npm:42.0.0"
+  dependencies:
+    "@electron/get": "npm:^5.0.0"
+    "@types/node": "npm:^24.9.0"
+    extract-zip: "npm:^2.0.1"
+  bin:
+    electron: cli.js
+    install-electron: install.js
+  checksum: 10c0/72d7e7947216ef4d5e94e52e0e2dc6e6e2fc7ce296f9073da2d3cc4a1e7bd77790f603a26afeb88febcd4c3c5b16c45f5c0f3f0a3e68e64ac1b0d83742598906
+  languageName: node
+  linkType: hard
+
 "electron@npm:^39.8.4":
   version: 39.8.6
   resolution: "electron@npm:39.8.6"
@@ -3581,6 +3628,13 @@ __metadata:
   version: 2.2.1
   resolution: "env-paths@npm:2.2.1"
   checksum: 10c0/285325677bf00e30845e330eec32894f5105529db97496ee3f598478e50f008c5352a41a30e5e72ec9de8a542b5a570b85699cd63bd2bc646dbcb9f311d83bc4
+  languageName: node
+  linkType: hard
+
+"env-paths@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "env-paths@npm:3.0.0"
+  checksum: 10c0/76dec878cee47f841103bacd7fae03283af16f0702dad65102ef0a556f310b98a377885e0f32943831eb08b5ab37842a323d02529f3dfd5d0a40ca71b01b435f
   languageName: node
   linkType: hard
 
@@ -6813,6 +6867,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"semver@npm:^7.6.3":
+  version: 7.7.4
+  resolution: "semver@npm:7.7.4"
+  bin:
+    semver: bin/semver.js
+  checksum: 10c0/5215ad0234e2845d4ea5bb9d836d42b03499546ddafb12075566899fc617f68794bb6f146076b6881d755de17d6c6cc73372555879ec7dce2c2feee947866ad2
+  languageName: node
+  linkType: hard
+
 "send@npm:~0.19.0, send@npm:~0.19.1":
   version: 0.19.2
   resolution: "send@npm:0.19.2"
@@ -7583,6 +7646,13 @@ __metadata:
   version: 7.16.0
   resolution: "undici-types@npm:7.16.0"
   checksum: 10c0/3033e2f2b5c9f1504bdc5934646cb54e37ecaca0f9249c983f7b1fc2e87c6d18399ebb05dc7fd5419e02b2e915f734d872a65da2e3eeed1813951c427d33cc9a
+  languageName: node
+  linkType: hard
+
+"undici@npm:^7.24.4":
+  version: 7.25.0
+  resolution: "undici@npm:7.25.0"
+  checksum: 10c0/02a0b45dc14eb91bc488948750232450fe52f27a6b08086d6ac6736bb47908d600fe3a96d346f12eab24729c782e5c2f693bc8e8eca6696d4e4c09b1ed4cb4ec
   languageName: node
   linkType: hard
 
