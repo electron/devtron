@@ -603,6 +603,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@electron-internal/extract-zip@npm:^1.0.1":
+  version: 1.0.3
+  resolution: "@electron-internal/extract-zip@npm:1.0.3"
+  checksum: 10c0/29a03ec0dcc75b74c8dce1e58cc796fabf4f1faa1e43cc1680bf5f93e88ad25c47bac0511feacb4fc5ed5e2e1db780116006f851af96fa0e064c727675a94262
+  languageName: node
+  linkType: hard
+
 "@electron/devtron@workspace:.":
   version: 0.0.0-use.local
   resolution: "@electron/devtron@workspace:."
@@ -634,6 +641,7 @@ __metadata:
     electron40: "npm:electron@^40"
     electron41: "npm:electron@^41"
     electron42: "npm:electron@^42"
+    electron43: "npm:electron@^43"
     html-webpack-plugin: "npm:^5.6.3"
     husky: "npm:^9.1.7"
     lint-staged: "npm:^16.4.0"
@@ -3544,6 +3552,20 @@ __metadata:
     electron: cli.js
     install-electron: install.js
   checksum: 10c0/72d7e7947216ef4d5e94e52e0e2dc6e6e2fc7ce296f9073da2d3cc4a1e7bd77790f603a26afeb88febcd4c3c5b16c45f5c0f3f0a3e68e64ac1b0d83742598906
+  languageName: node
+  linkType: hard
+
+"electron43@npm:electron@^43":
+  version: 43.0.0
+  resolution: "electron@npm:43.0.0"
+  dependencies:
+    "@electron-internal/extract-zip": "npm:^1.0.1"
+    "@electron/get": "npm:^5.0.0"
+    "@types/node": "npm:^24.9.0"
+  bin:
+    electron: cli.js
+    install-electron: install.js
+  checksum: 10c0/9f0bfb4e55dd97102941d009ce44ea1c5aa82325e877733284d75be8880ead11305ff45198d059e5127b441c94391ed159136cee23f2474e2416e2bbab2e9940
   languageName: node
   linkType: hard
 
