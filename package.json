@@ -85,6 +85,7 @@
     "electron40": "npm:electron@^40",
     "electron41": "npm:electron@^41",
     "electron42": "npm:electron@^42",
+    "electron43": "npm:electron@^43",
     "html-webpack-plugin": "^5.6.3",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
