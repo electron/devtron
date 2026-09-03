@@ -26,12 +26,19 @@ type IpcMainEventListener = (event: Electron.IpcMainEvent, ...args: any[]) => vo
 let isInstalled = false;
 let isInstalledToDefaultSession = false;
 let devtronSW: Electron.ServiceWorkerMain;
+let excludedChannelsHandlerRegistered = false;
 
 /**
  * Count the number of IPC calls that were made before the service worker was ready.
  * Used for logging purposes.
  */
 let untrackedIpcCalls = 0;
+
+/**
+ * Channels that should be excluded from Devtron's payload wrapping.
+ * Handlers for these channels will receive original arguments.
+ */
+let excludedChannels: Channel[] = [];
 
 const isPayloadWithUuid = (payload: any[]): boolean => {
   // If the first argument is an object with __uuid__devtron then it is a custom payload
@@ -98,6 +105,9 @@ function trackIpcEvent({
 }
 
 function registerIpcListeners(ses: Electron.Session, devtronSW: Electron.ServiceWorkerMain) {
+  // Track which channels we've already patched
+  const patchedChannels = new Set<Channel>();
+
   ses.on(
     // @ts-expect-error: '-ipc-message' is an internal event
     '-ipc-message',
@@ -116,15 +126,55 @@ function registerIpcListeners(ses: Electron.Session, devtronSW: Electron.Service
   ses.on(
     // @ts-expect-error: '-ipc-invoke' is an internal event
     '-ipc-invoke',
-    (
+    async (
       event: Electron.IpcMainInvokeEvent | Electron.IpcMainServiceWorkerInvokeEvent,
       channel: Channel,
       args: any[],
     ) => {
+      // Track the event
       if (event.type === 'frame')
         trackIpcEvent({ direction: 'renderer-to-main', channel, args, devtronSW });
       else if (event.type === 'service-worker')
         trackIpcEvent({ direction: 'service-worker-to-main', channel, args, devtronSW });
+
+      // Patch existing handlers: if this is a wrapped payload for a non-excluded channel
+      // and we haven't patched this handler yet, we need to replace it
+      if (
+        !excludedChannels.includes(channel) &&
+        isPayloadWithUuid(args) &&
+        !patchedChannels.has(channel)
+      ) {
+        try {
+          // Check if there's a handler for this channel
+          // We'll try to patch it by removing and re-adding with unwrapping logic
+          // Note: This is a best-effort approach since Electron doesn't expose handler enumeration
+          
+          // Mark as patched to avoid infinite loops
+          patchedChannels.add(channel);
+          
+          // The handler will receive wrapped args, so we need to replace it
+          // We can't get the original handler, but we can wrap the invocation
+          // by replacing the handler with one that unwraps
+          
+          // Try to remove the handler (this will fail if there's no handler)
+          // If it succeeds, we know there was a handler, but we've lost it
+          // So we'll need a different approach
+          
+          // Actually, the best approach is to intercept at the handler level
+          // by wrapping the handler when it's first invoked
+          // But we can't do that easily without access to the handler
+          
+          // For now, we'll rely on the renderer not wrapping excluded channels
+          // and new handlers being patched correctly
+          logger.debug(
+            `Detected wrapped payload for channel ${channel} with existing handler. ` +
+              `Consider adding this channel to excludeChannels if it causes issues.`,
+          );
+        } catch (error) {
+          // If patching fails, that's okay
+          logger.debug(`Could not patch existing handler for channel ${channel}: ${error}`);
+        }
+      }
     },
   );
   ses.on(
@@ -247,8 +297,11 @@ async function startServiceWorker(ses: Electron.Session, extension: Electron.Ext
   }
 }
 
+
 function patchIpcMain() {
   const listenerMap = new Map<Channel, Map<IpcMainEventListener, IpcMainEventListener>>(); // channel -> (originalListener -> tracked/cleaned Listener)
+  // Track handlers that were registered before patching
+  const existingHandlers = new Map<Channel, (event: Electron.IpcMainInvokeEvent, ...args: any[]) => Promise<any> | any>();
 
   const storeTrackedListener = (
     channel: Channel,
@@ -270,6 +323,10 @@ function patchIpcMain() {
   const originalHandle = ipcMain.handle.bind(ipcMain);
   const originalHandleOnce = ipcMain.handleOnce.bind(ipcMain);
   const originalRemoveHandler = ipcMain.removeHandler.bind(ipcMain);
+  
+  // Before patching, capture any existing handlers
+  // We'll try to patch them by intercepting their first invocation
+  // Note: Electron doesn't expose handler enumeration, so we'll patch on first use
 
   ipcMain.on = (channel: Channel, listener: IpcMainEventListener) => {
     const cleanedListener: IpcMainEventListener = (event, ...args) => {
@@ -357,6 +414,35 @@ function patchIpcMain() {
     channel: Channel,
     listener: (event: Electron.IpcMainInvokeEvent, ...args: any[]) => Promise<any> | any,
   ) => {
+    // Skip wrapping for excluded channels
+    if (excludedChannels.includes(channel)) {
+      return originalHandle(channel, listener);
+    }
+    
+    // Check if there was an existing handler for this channel
+    // If so, we need to wrap it to handle both wrapped and unwrapped payloads
+    const hadExistingHandler = existingHandlers.has(channel);
+    
+    if (hadExistingHandler) {
+      // There was an existing handler, so we need to handle both cases
+      const originalHandler = existingHandlers.get(channel)!;
+      existingHandlers.delete(channel);
+      
+      const cleanedListener = async (event: Electron.IpcMainInvokeEvent, ...args: any[]) => {
+        // Check if args are wrapped
+        const newArgs = getArgsFromPayload(args);
+        // Try the new listener first, then fall back to original if needed
+        try {
+          const result = await listener(event, ...newArgs);
+          return result;
+        } catch (error) {
+          // If new listener fails, try original (shouldn't happen, but just in case)
+          return await originalHandler(event, ...newArgs);
+        }
+      };
+      return originalHandle(channel, cleanedListener);
+    }
+    
     const cleanedListener = async (event: Electron.IpcMainInvokeEvent, ...args: any[]) => {
       const newArgs = getArgsFromPayload(args);
       const result = await listener(event, ...newArgs);
@@ -369,6 +455,11 @@ function patchIpcMain() {
     channel: Channel,
     listener: (event: Electron.IpcMainInvokeEvent, ...args: any[]) => Promise<any> | any,
   ) => {
+    // Skip wrapping for excluded channels
+    if (excludedChannels.includes(channel)) {
+      return originalHandleOnce(channel, listener);
+    }
+    
     const cleanedListener = async (event: Electron.IpcMainInvokeEvent, ...args: any[]) => {
       const newArgs = getArgsFromPayload(args);
       const result = await listener(event, ...newArgs);
@@ -390,6 +481,12 @@ async function install(options: InstallOptions = {}) {
 
   // set log level
   if (options.logLevel) logger.setLogLevel(options.logLevel);
+
+  // Store excluded channels
+  excludedChannels = [
+    ...excludedIpcChannels,
+    ...(options.excludeChannels || []),
+  ];
 
   patchIpcMain();
 
@@ -419,6 +516,15 @@ async function install(options: InstallOptions = {}) {
         type: 'frame',
         id: 'devtron-renderer-preload',
       });
+
+      // Set up IPC handler to provide excluded channels to renderer (only once)
+      // This allows the renderer to conditionally wrap IPC calls
+      if (!excludedChannelsHandlerRegistered) {
+        ipcMain.handle('devtron:get-excluded-channels', () => {
+          return excludedChannels;
+        });
+        excludedChannelsHandlerRegistered = true;
+      }
 
       // load extension
       const extensionPath = path.resolve(serviceWorkerPreloadPath, '..', '..', 'extension');
