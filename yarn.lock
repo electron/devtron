@@ -633,7 +633,6 @@ __metadata:
     cross-env: "npm:^7.0.3"
     css-loader: "npm:^7.1.2"
     denque: "npm:^2.1.0"
-    electron: "npm:^43.4.0"
     electron36: "npm:electron@^36"
     electron37: "npm:electron@^37"
     electron38: "npm:electron@^38"
@@ -3489,7 +3488,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"electron43@npm:electron@^43, electron@npm:^43.4.0":
+"electron43@npm:electron@^43":
   version: 43.4.0
   resolution: "electron@npm:43.4.0"
   dependencies:
