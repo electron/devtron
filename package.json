@@ -90,7 +90,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^17.4.1",
     "mocha": "^11.7.1",
-    "oxfmt": "^0.44.0",
+    "oxfmt": "^0.71.0",
     "oxlint": "^1.59.0",
     "oxlint-tsgolint": "^0.20.0",
     "postcss": "^8.5.4",
