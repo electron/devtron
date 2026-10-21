@@ -131,13 +131,12 @@ describe('Tracking IPC Events', () => {
   before(async function () {
     this.timeout(20 * 1000);
 
-    // wait until webContents is ready
+    // The test window is created before `devtron.install()` registers the renderer
+    // preload, so its first load can miss it. Reload so the preload is applied.
     await new Promise<void>((resolve) => {
       const wc = mainWindow.webContents;
-      if (!wc.isLoading()) {
-        return resolve(); // already loaded
-      }
       wc.once('did-finish-load', () => resolve());
+      wc.reload();
     });
 
     ipcMain.on('test-main-on', () => {});
