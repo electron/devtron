@@ -384,6 +384,143 @@ function patchIpcMain() {
   };
 }
 
+function patchWebContents(e: Electron.Event, { ipc }: { ipc: Electron.IpcMain }) {
+  const listenerMap = new Map<Channel, Map<IpcMainEventListener, IpcMainEventListener>>(); // channel -> (originalListener -> tracked/cleaned Listener)
+
+  const storeTrackedListener = (
+    channel: Channel,
+    original: IpcMainEventListener,
+    tracked: IpcMainEventListener,
+  ): void => {
+    if (!listenerMap.has(channel)) {
+      listenerMap.set(channel, new Map());
+    }
+    listenerMap.get(channel)!.set(original, tracked);
+  };
+
+  const originalOn = ipc.on.bind(ipc);
+  const originalOff = ipc.off.bind(ipc);
+  const originalOnce = ipc.once.bind(ipc);
+  const originalAddListener = ipc.addListener.bind(ipc);
+  const originalRemoveListener = ipc.removeListener.bind(ipc);
+  const originalRemoveAllListeners = ipc.removeAllListeners.bind(ipc);
+  const originalHandle = ipc.handle.bind(ipc);
+  const originalHandleOnce = ipc.handleOnce.bind(ipc);
+  const originalRemoveHandler = ipc.removeHandler.bind(ipc);
+
+  ipc.on = (channel: Channel, listener: IpcMainEventListener) => {
+    const cleanedListener: IpcMainEventListener = (event, ...args) => {
+      const newArgs = getArgsFromPayload(args);
+      listener(event, ...newArgs);
+    };
+    storeTrackedListener(channel, listener, cleanedListener);
+    return originalOn(channel, cleanedListener);
+  };
+
+  ipc.off = (channel: Channel, listener: IpcMainEventListener) => {
+    const channelMap = listenerMap.get(channel);
+    const cleanedListener = channelMap?.get(listener);
+
+    if (!cleanedListener) return ipc;
+
+    channelMap?.delete(listener);
+    if (channelMap && channelMap.size === 0) {
+      listenerMap.delete(channel);
+    }
+
+    trackIpcEvent({ direction: 'main', channel, args: [], devtronSW, method: 'off' });
+    return originalOff(channel, cleanedListener);
+  };
+
+  ipc.once = (channel: Channel, listener: IpcMainEventListener) => {
+    const cleanedListener: IpcMainEventListener = (event, ...args) => {
+      const newArgs = getArgsFromPayload(args);
+      listener(event, ...newArgs);
+    };
+    return originalOnce(channel, cleanedListener);
+  };
+
+  ipc.addListener = (channel: Channel, listener: IpcMainEventListener) => {
+    const cleanedListener: IpcMainEventListener = (event, ...args) => {
+      const newArgs = getArgsFromPayload(args);
+      listener(event, ...newArgs);
+    };
+    storeTrackedListener(channel, listener, cleanedListener);
+    return originalAddListener(channel, cleanedListener);
+  };
+
+  ipc.removeListener = (channel: Channel, listener: IpcMainEventListener) => {
+    const channelMap = listenerMap.get(channel);
+    const cleanedListener = channelMap?.get(listener);
+
+    if (!cleanedListener) return ipc;
+
+    // Remove the listener from the map
+    channelMap?.delete(listener);
+    // If no listeners left for this channel, remove the channel from the map
+    if (channelMap && channelMap.size === 0) {
+      listenerMap.delete(channel);
+    }
+    trackIpcEvent({ direction: 'main', channel, args: [], devtronSW, method: 'removeListener' });
+    return originalRemoveListener(channel, cleanedListener);
+  };
+
+  ipc.removeAllListeners = (channel?: Channel) => {
+    if (channel) {
+      listenerMap.delete(channel);
+      trackIpcEvent({
+        direction: 'main',
+        channel,
+        args: [],
+        devtronSW,
+        method: 'removeAllListeners',
+      });
+      return originalRemoveAllListeners(channel);
+    } else {
+      listenerMap.clear();
+      trackIpcEvent({
+        direction: 'main',
+        channel: '',
+        args: [],
+        devtronSW,
+        method: 'removeAllListeners',
+      });
+      listenerMap.clear();
+      return originalRemoveAllListeners();
+    }
+  };
+
+  ipc.handle = (
+    channel: Channel,
+    listener: (event: Electron.IpcMainInvokeEvent, ...args: any[]) => Promise<any> | any,
+  ) => {
+    const cleanedListener = async (event: Electron.IpcMainInvokeEvent, ...args: any[]) => {
+      const newArgs = getArgsFromPayload(args);
+      const result = await listener(event, ...newArgs);
+      return result;
+    };
+    return originalHandle(channel, cleanedListener);
+  };
+
+  ipc.handleOnce = (
+    channel: Channel,
+    listener: (event: Electron.IpcMainInvokeEvent, ...args: any[]) => Promise<any> | any,
+  ) => {
+    const cleanedListener = async (event: Electron.IpcMainInvokeEvent, ...args: any[]) => {
+      const newArgs = getArgsFromPayload(args);
+      const result = await listener(event, ...newArgs);
+      return result;
+    };
+    return originalHandleOnce(channel, cleanedListener);
+  };
+
+  ipc.removeHandler = (channel: Channel) => {
+    listenerMap.delete(channel);
+    trackIpcEvent({ direction: 'main', channel, args: [], devtronSW, method: 'removeHandler' });
+    return originalRemoveHandler(channel);
+  };
+}
+
 async function install(options: InstallOptions = {}) {
   if (isInstalled) return;
   isInstalled = true;
@@ -392,6 +529,8 @@ async function install(options: InstallOptions = {}) {
   if (options.logLevel) logger.setLogLevel(options.logLevel);
 
   patchIpcMain();
+
+  app.on('web-contents-created', patchWebContents);
 
   const installToSession = async (ses: Electron.Session) => {
     if (ses === session.defaultSession && isInstalledToDefaultSession) return;
