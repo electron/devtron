@@ -12,6 +12,48 @@ type IpcListener = (event: Electron.IpcRendererEvent, ...args: any[]) => void;
 let isInstalled = false;
 
 /**
+ * Channels that should be excluded from Devtron's payload wrapping.
+ * This is fetched from the main process via IPC and cached.
+ */
+let excludedChannelsCache: Channel[] | null = null;
+let excludedChannelsPromise: Promise<Channel[]> | null = null;
+
+const getExcludedChannels = (): Channel[] => {
+  // Return cached value if available
+  if (excludedChannelsCache !== null) {
+    return excludedChannelsCache;
+  }
+  
+  // Try to get from global variable (set by main process)
+  if (typeof window !== 'undefined' && (window as any).__devtronExcludedChannels) {
+    const channels = (window as any).__devtronExcludedChannels;
+    if (Array.isArray(channels)) {
+      excludedChannelsCache = channels;
+      return excludedChannelsCache;
+    }
+  }
+  
+  // Fetch via IPC if not already fetching
+  if (!excludedChannelsPromise && typeof ipcRenderer !== 'undefined') {
+    excludedChannelsPromise = ipcRenderer
+      .invoke('devtron:get-excluded-channels')
+      .then((channels: Channel[]) => {
+        excludedChannelsCache = channels;
+        if (typeof window !== 'undefined') {
+          (window as any).__devtronExcludedChannels = channels;
+        }
+        return channels;
+      })
+      .catch(() => {
+        return [];
+      });
+  }
+  
+  // Return empty array for now, will be updated when IPC call completes
+  return [];
+};
+
+/**
  * Store tracked listeners in a map so that they can be removed later
  * if the user calls `removeListener`or `removeAllListeners`.
  */
@@ -118,6 +160,12 @@ export function monitorRenderer(): void {
   };
 
   ipcRenderer.sendSync = function (channel: Channel, ...args: any[]) {
+    const excludedChannels = getExcludedChannels();
+    // Skip wrapping for excluded channels
+    if (excludedChannels.includes(channel)) {
+      return originalSendSync(channel, ...args);
+    }
+    
     const uuid = crypto.randomUUID(); // uuid is used to match the response with the request
     const payload = {
       __uuid__devtron: uuid,
@@ -133,6 +181,12 @@ export function monitorRenderer(): void {
   };
 
   ipcRenderer.invoke = async function (channel: Channel, ...args: any[]): Promise<any> {
+    const excludedChannels = getExcludedChannels();
+    // Skip wrapping for excluded channels
+    if (excludedChannels.includes(channel)) {
+      return originalInvoke(channel, ...args);
+    }
+    
     const uuid = crypto.randomUUID(); // uuid is used to match the response with the request
     const payload = {
       __uuid__devtron: uuid,
